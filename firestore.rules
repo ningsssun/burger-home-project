@@ -1,0 +1,123 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Helper functions ──────────────────────────────────────
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isHouseholdMember(householdId) {
+      return request.auth.uid in get(
+        /databases/$(database)/documents/households/$(householdId)
+      ).data.memberIds;
+    }
+
+    function isHouseholdAdmin(householdId) {
+      let memberDoc = get(
+        /databases/$(database)/documents/households/$(householdId)/members/$(request.auth.uid)
+      ).data;
+      return memberDoc.role == 'admin';
+    }
+
+    // ─── Users ────────────────────────────────────────────────
+
+    match /users/{userId} {
+      allow read: if isSignedIn() && (
+        isOwner(userId) ||
+        // Allow members of the same household to read each other
+        getUserData().householdId != null &&
+        getUserData().householdId == get(/databases/$(database)/documents/users/$(userId)).data.householdId
+      );
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isOwner(userId);
+      allow delete: if false;
+    }
+
+    // ─── Households ───────────────────────────────────────────
+
+    match /households/{householdId} {
+      allow read: if isSignedIn() && isHouseholdMember(householdId);
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && isHouseholdMember(householdId);
+      allow delete: if isSignedIn() && isHouseholdAdmin(householdId);
+
+      match /members/{memberId} {
+        allow read: if isSignedIn() && isHouseholdMember(householdId);
+        allow write: if isSignedIn() && (
+          isOwner(memberId) || isHouseholdAdmin(householdId)
+        );
+      }
+    }
+
+    // ─── Tasks ────────────────────────────────────────────────
+
+    match /tasks/{taskId} {
+      allow read: if isSignedIn() && (
+        resource.data.householdId == getUserData().householdId
+      );
+      allow create: if isSignedIn() && (
+        request.resource.data.householdId == getUserData().householdId
+      );
+      allow update: if isSignedIn() && (
+        resource.data.householdId == getUserData().householdId
+      );
+      allow delete: if isSignedIn() && (
+        resource.data.householdId == getUserData().householdId &&
+        (resource.data.createdBy == request.auth.uid ||
+         isHouseholdAdmin(resource.data.householdId))
+      );
+    }
+
+    // ─── Shared Lists ─────────────────────────────────────────
+
+    match /sharedLists/{listId} {
+      allow read: if isSignedIn() && (
+        resource.data.householdId == getUserData().householdId
+      );
+      allow create: if isSignedIn() && (
+        request.resource.data.householdId == getUserData().householdId
+      );
+      allow update: if isSignedIn() && (
+        resource.data.householdId == getUserData().householdId
+      );
+      allow delete: if isSignedIn() && (
+        resource.data.householdId == getUserData().householdId &&
+        (resource.data.createdBy == request.auth.uid ||
+         isHouseholdAdmin(resource.data.householdId))
+      );
+
+      match /items/{itemId} {
+        allow read: if isSignedIn() && (
+          get(/databases/$(database)/documents/sharedLists/$(listId)).data.householdId
+            == getUserData().householdId
+        );
+        allow write: if isSignedIn() && (
+          get(/databases/$(database)/documents/sharedLists/$(listId)).data.householdId
+            == getUserData().householdId
+        );
+      }
+    }
+
+    // ─── Points Ledger ────────────────────────────────────────
+
+    match /pointsLedger/{ledgerId} {
+      allow read: if isSignedIn() && (
+        resource.data.householdId == getUserData().householdId
+      );
+      allow create: if isSignedIn() && (
+        request.resource.data.userId == request.auth.uid
+      );
+      allow update, delete: if false; // immutable
+    }
+  }
+}
