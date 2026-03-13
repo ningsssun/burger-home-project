@@ -17,11 +17,9 @@ export function Card({ elevated = false, children, style, ...props }: CardProps)
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.lightBg,
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.gray100,
   } as ViewStyle,
   elevated: {
     borderWidth: 0,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,8 @@ import {
   Share,
   Alert,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
@@ -18,21 +19,25 @@ import { Colors, Spacing, Typography } from '@/shared/constants/theme';
 import { MemberDoc } from '@/shared/types/models';
 
 export default function HouseholdScreen() {
+  const navigation = useNavigation();
+  useFocusEffect(useCallback(() => {
+    navigation.getParent()?.setOptions({ tabBarStyle: { display: 'none' } });
+    return () => navigation.getParent()?.setOptions({ tabBarStyle: undefined });
+  }, [navigation]));
+
   const household = useHousehold();
   const members = useHouseholdMembers();
-
-  const sortedMembers = [...members].sort((a, b) => b.weeklyPoints - a.weeklyPoints);
 
   const copyInviteCode = async () => {
     if (!household?.inviteCode) return;
     await Clipboard.setStringAsync(household.inviteCode);
-    Alert.alert('Copied!', `Invite code ${household.inviteCode} copied to clipboard.`);
+    Alert.alert('已复制', `邀请码 ${household.inviteCode} 已复制到剪贴板`);
   };
 
   const shareInviteCode = async () => {
     if (!household?.inviteCode) return;
     await Share.share({
-      message: `Join my household "${household.name}" on Burger Home! Use invite code: ${household.inviteCode}`,
+      message: `加入我的家庭「${household.name}」，邀请码：${household.inviteCode}`,
     });
   };
 
@@ -42,7 +47,7 @@ export default function HouseholdScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Household</Text>
+        <Text style={styles.headerTitle}>家庭成员管理</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -51,54 +56,49 @@ export default function HouseholdScreen() {
         <Card style={styles.nameCard}>
           <Text style={styles.emoji}>🏠</Text>
           <Text style={styles.householdName}>{household?.name}</Text>
-          <Text style={styles.memberCount}>{members.length} members</Text>
+          <Text style={styles.memberCount}>{members.length} 位成员</Text>
         </Card>
 
         {/* Invite code */}
         <Card>
-          <Text style={styles.sectionLabel}>Invite Code</Text>
+          <Text style={styles.sectionLabel}>邀请码</Text>
           <View style={styles.inviteCodeContainer}>
             <Text style={styles.inviteCode}>{household?.inviteCode}</Text>
           </View>
           <View style={styles.inviteActions}>
             <TouchableOpacity style={styles.inviteAction} onPress={copyInviteCode}>
               <Ionicons name="copy-outline" size={18} color={Colors.primary} />
-              <Text style={styles.inviteActionText}>Copy</Text>
+              <Text style={styles.inviteActionText}>复制</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.inviteAction} onPress={shareInviteCode}>
               <Ionicons name="share-outline" size={18} color={Colors.primary} />
-              <Text style={styles.inviteActionText}>Share</Text>
+              <Text style={styles.inviteActionText}>分享</Text>
             </TouchableOpacity>
           </View>
         </Card>
 
-        {/* Weekly leaderboard */}
+        {/* Members list */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Weekly Leaderboard</Text>
+          <Text style={styles.sectionTitle}>成员列表</Text>
         </View>
 
-        {sortedMembers.map((member, index) => (
-          <MemberRow key={member.userId} member={member} rank={index + 1} />
+        {members.map((member) => (
+          <MemberRow key={member.userId} member={member} />
         ))}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function MemberRow({ member, rank }: { member: MemberDoc & { id: string }; rank: number }) {
-  const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+function MemberRow({ member }: { member: MemberDoc & { id: string } }) {
+  const roleLabel = member.role === 'admin' ? '管理员' : '成员';
 
   return (
     <Card style={styles.memberCard}>
-      <Text style={styles.rank}>{rankEmoji}</Text>
       <Avatar name={member.displayName} photoURL={member.photoURL} size={44} />
       <View style={styles.memberInfo}>
         <Text style={styles.memberName}>{member.displayName}</Text>
-        <Text style={styles.memberRole}>{member.role}</Text>
-      </View>
-      <View style={styles.memberPoints}>
-        <Text style={styles.weeklyPoints}>{member.weeklyPoints}</Text>
-        <Text style={styles.pointsLabel}>pts this week</Text>
+        <Text style={styles.memberRole}>{roleLabel}</Text>
       </View>
     </Card>
   );
@@ -188,7 +188,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.md,
   },
-  rank: { fontSize: 24, width: 36, textAlign: 'center' },
   memberInfo: { flex: 1 },
   memberName: {
     fontSize: Typography.base,
@@ -196,17 +195,6 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
   },
   memberRole: {
-    fontSize: Typography.xs,
-    color: Colors.textSecondary,
-    textTransform: 'capitalize',
-  },
-  memberPoints: { alignItems: 'flex-end' },
-  weeklyPoints: {
-    fontSize: Typography.xl,
-    fontWeight: Typography.bold,
-    color: Colors.primary,
-  },
-  pointsLabel: {
     fontSize: Typography.xs,
     color: Colors.textSecondary,
   },

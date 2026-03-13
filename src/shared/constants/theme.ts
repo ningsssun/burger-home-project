@@ -1,8 +1,14 @@
 export const Colors = {
   // Brand
-  primary: '#FF6B35',
-  primaryLight: '#FF8F66',
-  primaryDark: '#CC4A1A',
+  primary: '#F1B1DF',
+  primaryLight: '#F7CDE9',
+  primaryDark: '#D47DBB',
+
+  // CASA brand
+  ink: '#1E0517',
+  pink: '#F1B1DF',
+  slate: '#7A5A74',
+  lightBg: '#F4F4F4',
 
   // Accent
   accent: '#FFD166',
@@ -29,13 +35,13 @@ export const Colors = {
   gray900: '#111827',
 
   // Background
-  background: '#F9FAFB',
+  background: '#FFFFFF',
   surface: '#FFFFFF',
   surfaceElevated: '#FFFFFF',
 
   // Text
-  textPrimary: '#111827',
-  textSecondary: '#6B7280',
+  textPrimary: '#1E0517',
+  textSecondary: '#7A5A74',
   textDisabled: '#9CA3AF',
   textInverse: '#FFFFFF',
 

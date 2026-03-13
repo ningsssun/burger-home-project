@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,14 +7,13 @@ import {
   Alert,
   TextInput,
   Modal,
+  Pressable,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { format } from 'date-fns';
 import { useSharedLists, useCreateList, useDeleteList } from '@/features/lists/hooks/useLists';
-import { Card } from '@/shared/components/ui';
 import { Colors, Spacing, Typography, BorderRadius } from '@/shared/constants/theme';
 import { SharedList } from '@/shared/types/models';
 
@@ -23,105 +22,124 @@ export default function ListsScreen() {
   const createList = useCreateList();
   const deleteList = useDeleteList();
   const [showModal, setShowModal] = useState(false);
-  const [newListTitle, setNewListTitle] = useState('');
+  const [inputKey, setInputKey] = useState(0);
+  const listTitleRef = useRef('');
   const [creating, setCreating] = useState(false);
 
   const handleCreate = async () => {
-    if (!newListTitle.trim()) return;
+    const title = listTitleRef.current.trim();
+    if (!title) return;
     setCreating(true);
     try {
-      await createList(newListTitle.trim());
-      setNewListTitle('');
+      await createList(title);
+      listTitleRef.current = '';
+      setInputKey(k => k + 1);
       setShowModal(false);
     } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : 'Failed');
+      Alert.alert('错误', err instanceof Error ? err.message : '创建失败');
     } finally {
       setCreating(false);
     }
   };
 
   const handleDelete = (list: SharedList) => {
-    Alert.alert('Delete List', `Delete "${list.title}"?`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => deleteList(list.id) },
+    Alert.alert('删除清单', `确定删除"${list.title}"？`, [
+      { text: '取消', style: 'cancel' },
+      { text: '删除', style: 'destructive', onPress: () => deleteList(list.id) },
     ]);
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Shared Lists</Text>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => setShowModal(true)}
-        >
-          <Ionicons name="add" size={24} color={Colors.white} />
+        <Text style={styles.title}>购物清单</Text>
+        <TouchableOpacity style={styles.addCircle} onPress={() => setShowModal(true)}>
+          <Ionicons name="add" size={22} color={Colors.white} />
         </TouchableOpacity>
       </View>
+
+      {/* Hero card */}
+      {(() => {
+        const pendingCount = lists.filter(l => l.status !== 'completed').length;
+        return (
+          <View style={styles.heroCard}>
+            <View style={styles.heroLeft}>
+              <View>
+                <Text style={styles.heroTitle}>{lists.length} 个清单</Text>
+                <Text style={styles.heroSubtitle}>{pendingCount} 个待买</Text>
+              </View>
+            </View>
+            <View style={styles.heroCount}>
+              <Text style={styles.heroCountText}>{pendingCount}</Text>
+            </View>
+          </View>
+        );
+      })()}
 
       <FlashList
         data={lists}
         keyExtractor={(item) => item.id}
-        estimatedItemSize={80}
-        contentContainerStyle={styles.list}
+        estimatedItemSize={72}
+        contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
           <TouchableOpacity onPress={() => router.push(`/(app)/(lists)/${item.id}`)}>
-            <Card style={styles.listCard}>
+            <View style={styles.listRow}>
+              <Text style={styles.listEmoji}>📝</Text>
               <View style={styles.listInfo}>
-                <Text style={styles.listEmoji}>📝</Text>
-                <View>
-                  <Text style={styles.listTitle}>{item.title}</Text>
-                  <Text style={styles.listDate}>
-                    {item.createdAt ? format(item.createdAt.toDate(), 'MMM d') : ''}
-                  </Text>
-                </View>
+                <Text style={styles.listTitle}>{item.title}</Text>
+              </View>
+              <View style={[styles.statusTag, item.status === 'completed' && styles.statusTagDone]}>
+                <Text style={styles.statusTagText}>{item.status === 'completed' ? '已完成' : '待买'}</Text>
               </View>
               <TouchableOpacity
                 onPress={() => handleDelete(item)}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <Ionicons name="trash-outline" size={18} color={Colors.gray400} />
+                <Ionicons name="trash-outline" size={16} color={Colors.slate} />
               </TouchableOpacity>
-            </Card>
+            </View>
           </TouchableOpacity>
         )}
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyEmoji}>📋</Text>
-            <Text style={styles.emptyTitle}>No shared lists yet</Text>
-            <Text style={styles.emptySubtitle}>Create a grocery list or to-do list!</Text>
-          </View>
+          !loading ? (
+            <View style={styles.empty}>
+              <Text style={styles.emptyEmoji}>🛒</Text>
+              <Text style={styles.emptyTitle}>暂无清单</Text>
+              <Text style={styles.emptySubtitle}>点击 + 创建购物清单</Text>
+            </View>
+          ) : null
         }
       />
 
-      {/* Create modal */}
-      <Modal visible={showModal} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modal}>
-            <Text style={styles.modalTitle}>New List</Text>
+      {/* Add list modal — plain View sheet so TextInput receives CJK input */}
+      <Modal
+        visible={showModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <Pressable style={StyleSheet.absoluteFillObject} onPress={() => setShowModal(false)} />
+          <View style={styles.bottomSheet}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>新建清单</Text>
             <TextInput
-              style={styles.modalInput}
-              placeholder="e.g. Grocery List"
-              value={newListTitle}
-              onChangeText={setNewListTitle}
-              autoFocus
+              key={inputKey}
+              style={styles.input}
+              placeholder="清单名称，例如：本周采购"
+              placeholderTextColor={Colors.slate}
+              onChangeText={t => { listTitleRef.current = t; }}
+              returnKeyType="done"
               onSubmitEditing={handleCreate}
             />
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={styles.modalCancel}
-                onPress={() => { setShowModal(false); setNewListTitle(''); }}
-              >
-                <Text style={styles.modalCancelText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalCreate, creating && styles.disabled]}
-                onPress={handleCreate}
-                disabled={creating}
-              >
-                <Text style={styles.modalCreateText}>Create</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              style={[styles.submitBtn, creating && styles.submitBtnDisabled]}
+              onPress={handleCreate}
+              disabled={creating}
+            >
+              <Text style={styles.submitBtnText}>创建</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -130,69 +148,140 @@ export default function ListsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
+  container: { flex: 1, backgroundColor: Colors.white },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.sm,
   },
   title: {
     fontSize: Typography['2xl'],
     fontWeight: Typography.bold,
-    color: Colors.textPrimary,
+    color: Colors.ink,
   },
-  addButton: {
-    backgroundColor: Colors.primary,
+  addCircle: {
     width: 40,
     height: 40,
     borderRadius: 20,
+    backgroundColor: Colors.ink,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  list: { padding: Spacing.lg, paddingTop: 0 },
-  listCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.sm },
-  listInfo: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-  listEmoji: { fontSize: 32 },
+
+  heroCard: {
+    backgroundColor: Colors.lightBg,
+    borderRadius: BorderRadius.xl,
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
+    padding: Spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  heroLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  heroIcon: { fontSize: 32 },
+  heroTitle: {
+    fontSize: Typography.lg,
+    fontWeight: Typography.bold,
+    color: Colors.ink,
+  },
+  heroSubtitle: { fontSize: Typography.sm, color: Colors.ink, opacity: 0.7, marginTop: 2 },
+  heroCount: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#F1B1DF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroCountText: {
+    fontSize: Typography.xl,
+    fontWeight: Typography.bold,
+    color: '#1E0517',
+  },
+
+  listContent: { paddingHorizontal: Spacing.lg },
+  listRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    backgroundColor: Colors.lightBg,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  listEmoji: { fontSize: 24 },
+  listInfo: { flex: 1 },
   listTitle: {
     fontSize: Typography.base,
-    fontWeight: Typography.semibold,
-    color: Colors.textPrimary,
+    fontWeight: Typography.medium,
+    color: Colors.ink,
   },
-  listDate: {
+  statusTag: {
+    backgroundColor: Colors.pink,
+    borderRadius: 99,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+  },
+  statusTagDone: { backgroundColor: Colors.lightBg },
+  statusTagText: {
     fontSize: Typography.xs,
-    color: Colors.textSecondary,
+    fontWeight: Typography.semibold,
+    color: Colors.ink,
   },
+
   empty: { alignItems: 'center', paddingTop: Spacing.xxl, gap: Spacing.sm },
   emptyEmoji: { fontSize: 48 },
-  emptyTitle: { fontSize: Typography.xl, fontWeight: Typography.semibold, color: Colors.textPrimary },
-  emptySubtitle: { fontSize: Typography.sm, color: Colors.textSecondary },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  modal: {
+  emptyTitle: { fontSize: Typography.xl, fontWeight: Typography.semibold, color: Colors.ink },
+  emptySubtitle: { fontSize: Typography.sm, color: Colors.slate },
+
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  bottomSheet: {
     backgroundColor: Colors.white,
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.xl,
-    width: '80%',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: Spacing.lg,
+    paddingBottom: Spacing.xxl,
     gap: Spacing.md,
   },
-  modalTitle: { fontSize: Typography.xl, fontWeight: Typography.bold, color: Colors.textPrimary },
-  modalInput: {
-    borderWidth: 1.5,
-    borderColor: Colors.gray200,
-    borderRadius: BorderRadius.md,
+  sheetHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: Colors.gray200,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: Spacing.sm,
+  },
+  sheetTitle: {
+    fontSize: Typography.xl,
+    fontWeight: Typography.bold,
+    color: Colors.ink,
+  },
+  input: {
+    backgroundColor: Colors.lightBg,
+    borderRadius: BorderRadius.lg,
     padding: Spacing.md,
     fontSize: Typography.base,
-    color: Colors.textPrimary,
+    color: Colors.ink,
   },
-  modalActions: { flexDirection: 'row', gap: Spacing.sm, justifyContent: 'flex-end' },
-  modalCancel: { padding: Spacing.sm },
-  modalCancelText: { color: Colors.textSecondary, fontSize: Typography.base },
-  modalCreate: {
-    backgroundColor: Colors.primary,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
+  submitBtn: {
+    backgroundColor: Colors.ink,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    alignItems: 'center',
   },
-  modalCreateText: { color: Colors.white, fontWeight: Typography.semibold, fontSize: Typography.base },
-  disabled: { opacity: 0.5 },
+  submitBtnDisabled: { opacity: 0.5 },
+  submitBtnText: {
+    color: Colors.white,
+    fontSize: Typography.base,
+    fontWeight: Typography.semibold,
+  },
 });

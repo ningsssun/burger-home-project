@@ -3,6 +3,7 @@ import { query, where, onSnapshot } from 'firebase/firestore';
 import { tasksCol } from '../../../shared/lib/firestore';
 import { useTasksStore } from '../store/tasksStore';
 import { useHousehold } from '../../household/hooks/useHousehold';
+import { useCurrentUserDoc } from '../../auth/hooks/useAuth';
 import { Task } from '../../../shared/types/models';
 
 /**
@@ -11,10 +12,13 @@ import { Task } from '../../../shared/types/models';
  */
 export function useTasksSubscription() {
   const household = useHousehold();
+  const userDoc = useCurrentUserDoc();
   const { setTasks, setLoading } = useTasksStore();
 
   useEffect(() => {
-    if (!household?.id) {
+    // Wait until the Firestore user doc confirms the householdId matches,
+    // preventing a race where the local cache fires before the server commits.
+    if (!household?.id || household.id !== userDoc?.householdId) {
       setTasks([]);
       setLoading(false);
       return;
@@ -51,7 +55,7 @@ export function useTasksSubscription() {
     );
 
     return unsubscribe;
-  }, [household?.id, setTasks, setLoading]);
+  }, [household?.id, userDoc?.householdId, setTasks, setLoading]);
 }
 
 export function useTasks() {

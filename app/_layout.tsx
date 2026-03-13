@@ -33,7 +33,7 @@ function AuthGate() {
     const inAuthGroup = segments[0] === '(auth)';
 
     if (!isAuthenticated && !inAuthGroup) {
-      router.replace('/(auth)/sign-in');
+      router.replace('/(auth)/');
     } else if (isAuthenticated && inAuthGroup) {
       // Authenticated but in auth group — redirect based on household
       if (userDoc?.householdId) {

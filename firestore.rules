@@ -46,9 +46,16 @@ service cloud.firestore {
     // ─── Households ───────────────────────────────────────────
 
     match /households/{householdId} {
-      allow read: if isSignedIn() && isHouseholdMember(householdId);
+      allow get: if isSignedIn() && isHouseholdMember(householdId);
+      allow list: if isSignedIn(); // needed for invite code lookup query
       allow create: if isSignedIn();
-      allow update: if isSignedIn() && isHouseholdMember(householdId);
+      allow update: if isSignedIn() && (
+        isHouseholdMember(householdId) ||
+        // Allow joining: user can add themselves to memberIds
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds', 'updatedAt']) &&
+         request.resource.data.memberIds.hasAll(resource.data.memberIds) &&
+         request.resource.data.memberIds.hasAny([request.auth.uid]))
+      );
       allow delete: if isSignedIn() && isHouseholdAdmin(householdId);
 
       match /members/{memberId} {
@@ -106,6 +113,35 @@ service cloud.firestore {
             == getUserData().householdId
         );
       }
+    }
+
+    // ─── Rewards ──────────────────────────────────────────────
+
+    match /rewards/{rewardId} {
+      allow read: if isSignedIn() && (
+        resource.data.householdId == getUserData().householdId
+      );
+      allow create: if isSignedIn() && (
+        request.resource.data.householdId == getUserData().householdId
+      );
+      allow update: if isSignedIn() && (
+        resource.data.householdId == getUserData().householdId
+      );
+      allow delete: if isSignedIn() && (
+        resource.data.householdId == getUserData().householdId
+      );
+    }
+
+    // ─── Redemptions ──────────────────────────────────────────
+
+    match /redemptions/{redemptionId} {
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid
+      );
+      allow create: if isSignedIn() && (
+        request.resource.data.userId == request.auth.uid
+      );
+      allow update, delete: if false;
     }
 
     // ─── Points Ledger ────────────────────────────────────────

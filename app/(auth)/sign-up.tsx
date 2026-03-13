@@ -7,6 +7,7 @@ import {
   Platform,
   ScrollView,
   Alert,
+  Image,
 } from 'react-native';
 import { Link, router } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
@@ -17,12 +18,12 @@ import { useSignUp } from '@/features/auth/hooks/useSignIn';
 import { Colors, Spacing, Typography } from '@/shared/constants/theme';
 
 const schema = z.object({
-  displayName: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Enter a valid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  displayName: z.string().min(2, '姓名至少需要2个字符'),
+  email: z.string().email('请输入有效的邮箱地址'),
+  password: z.string().min(6, '密码至少需要6个字符'),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
+  message: '两次密码输入不一致',
   path: ['confirmPassword'],
 });
 
@@ -45,8 +46,8 @@ export default function SignUpScreen() {
       await signUp(data.email, data.password, data.displayName);
       router.replace('/(auth)/join-household');
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Something went wrong';
-      Alert.alert('Sign Up Failed', message);
+      const message = err instanceof Error ? err.message : '出现了一些问题';
+      Alert.alert('注册失败', message);
     }
   };
 
@@ -60,9 +61,13 @@ export default function SignUpScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
-          <Text style={styles.emoji}>🏠</Text>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Join your household and start tracking chores.</Text>
+          <Image
+            source={require('../../assets/images/house-illustration.jpg')}
+            style={styles.illustration}
+            resizeMode="contain"
+          />
+          <Text style={styles.title}>创建账户</Text>
+          <Text style={styles.subtitle}>加入你的家庭，开始记录家务。</Text>
         </View>
 
         <View style={styles.form}>
@@ -71,8 +76,8 @@ export default function SignUpScreen() {
             name="displayName"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="Your Name"
-                placeholder="Alex Smith"
+                label="你的名字"
+                placeholder="请输入姓名"
                 autoCapitalize="words"
                 autoComplete="name"
                 onChangeText={onChange}
@@ -88,7 +93,7 @@ export default function SignUpScreen() {
             name="email"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="Email"
+                label="邮箱"
                 placeholder="you@example.com"
                 autoCapitalize="none"
                 keyboardType="email-address"
@@ -106,7 +111,7 @@ export default function SignUpScreen() {
             name="password"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="Password"
+                label="密码"
                 placeholder="••••••••"
                 secureTextEntry
                 autoComplete="new-password"
@@ -123,7 +128,7 @@ export default function SignUpScreen() {
             name="confirmPassword"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="Confirm Password"
+                label="确认密码"
                 placeholder="••••••••"
                 secureTextEntry
                 autoComplete="new-password"
@@ -140,15 +145,16 @@ export default function SignUpScreen() {
             loading={isSubmitting}
             fullWidth
             size="lg"
+            style={{ backgroundColor: Colors.ink }}
           >
-            Create Account
+            创建账户
           </Button>
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account?{' '}</Text>
+          <Text style={styles.footerText}>已有账户？{' '}</Text>
           <Link href="/(auth)/sign-in" asChild>
-            <Text style={styles.link}>Sign In</Text>
+            <Text style={styles.link}>登录</Text>
           </Link>
         </View>
       </ScrollView>
@@ -171,8 +177,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.sm,
   },
-  emoji: {
-    fontSize: 64,
+  illustration: {
+    width: 160,
+    height: 160,
   },
   title: {
     fontSize: Typography['3xl'],

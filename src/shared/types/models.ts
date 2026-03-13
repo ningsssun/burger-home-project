@@ -95,6 +95,7 @@ export interface SharedListDoc {
   title: string;
   createdBy: string;
   createdAt: Timestamp;
+  status?: 'active' | 'completed';
 }
 
 export interface SharedList extends SharedListDoc {
@@ -130,6 +131,41 @@ export interface PointsLedgerDoc {
 }
 
 export interface PointsLedgerEntry extends PointsLedgerDoc {
+  id: string;
+}
+
+// ─────────────────────────────────────────────
+// Rewards
+// ─────────────────────────────────────────────
+
+export interface RewardDoc {
+  householdId: string;
+  title: string;
+  emoji: string;
+  pointsCost: number;
+  createdBy: string;
+  createdAt: Timestamp;
+}
+
+export interface Reward extends RewardDoc {
+  id: string;
+}
+
+// ─────────────────────────────────────────────
+// Redemptions
+// ─────────────────────────────────────────────
+
+export interface RedemptionDoc {
+  userId: string;
+  householdId: string;
+  rewardId: string;
+  rewardTitle: string;
+  rewardEmoji: string;
+  pointsCost: number;
+  redeemedAt: Timestamp;
+}
+
+export interface Redemption extends RedemptionDoc {
   id: string;
 }
 

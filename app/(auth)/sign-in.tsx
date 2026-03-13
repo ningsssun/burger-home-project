@@ -7,6 +7,7 @@ import {
   Platform,
   ScrollView,
   Alert,
+  Image,
 } from 'react-native';
 import { Link, router } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
@@ -17,8 +18,8 @@ import { useSignIn } from '@/features/auth/hooks/useSignIn';
 import { Colors, Spacing, Typography } from '@/shared/constants/theme';
 
 const schema = z.object({
-  email: z.string().email('Enter a valid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  email: z.string().email('请输入有效的邮箱地址'),
+  password: z.string().min(6, '密码至少需要6个字符'),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -40,7 +41,7 @@ export default function SignInScreen() {
       await signIn(data.email, data.password);
       router.replace('/(app)/(home)');
     } catch {
-      Alert.alert('Sign In Failed', 'Invalid email or password. Please try again.');
+      Alert.alert('登录失败', '邮箱或密码不正确，请重试。');
     }
   };
 
@@ -55,9 +56,13 @@ export default function SignInScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.emoji}>🏠</Text>
-          <Text style={styles.title}>Burger Home</Text>
-          <Text style={styles.subtitle}>Welcome back! Sign in to your household.</Text>
+          <Image
+            source={require('../../assets/images/house-illustration.jpg')}
+            style={styles.illustration}
+            resizeMode="contain"
+          />
+          <Text style={styles.title}>欢迎回来</Text>
+          <Text style={styles.subtitle}>登录你的家庭账户。</Text>
         </View>
 
         {/* Form */}
@@ -67,7 +72,7 @@ export default function SignInScreen() {
             name="email"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="Email"
+                label="邮箱"
                 placeholder="you@example.com"
                 autoCapitalize="none"
                 keyboardType="email-address"
@@ -85,7 +90,7 @@ export default function SignInScreen() {
             name="password"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="Password"
+                label="密码"
                 placeholder="••••••••"
                 secureTextEntry
                 autoComplete="password"
@@ -102,16 +107,17 @@ export default function SignInScreen() {
             loading={isSubmitting}
             fullWidth
             size="lg"
+            style={{ backgroundColor: Colors.ink }}
           >
-            Sign In
+            登录
           </Button>
         </View>
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account?{' '}</Text>
+          <Text style={styles.footerText}>还没有账户？{' '}</Text>
           <Link href="/(auth)/sign-up" asChild>
-            <Text style={styles.link}>Sign Up</Text>
+            <Text style={styles.link}>注册</Text>
           </Link>
         </View>
       </ScrollView>
@@ -134,8 +140,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.sm,
   },
-  emoji: {
-    fontSize: 64,
+  illustration: {
+    width: 160,
+    height: 160,
   },
   title: {
     fontSize: Typography['3xl'],

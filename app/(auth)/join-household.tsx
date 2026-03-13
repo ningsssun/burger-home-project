@@ -9,6 +9,7 @@ import {
   Alert,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
@@ -21,11 +22,11 @@ import { Colors, Spacing, Typography, BorderRadius } from '@/shared/constants/th
 type Mode = 'choose' | 'create' | 'join';
 
 const createSchema = z.object({
-  name: z.string().min(2, 'Household name must be at least 2 characters'),
+  name: z.string().min(2, '家庭名称至少需要2个字符'),
 });
 
 const joinSchema = z.object({
-  inviteCode: z.string().length(6, 'Invite code must be 6 characters'),
+  inviteCode: z.string().length(6, '邀请码必须是6位字符'),
 });
 
 type CreateFormData = z.infer<typeof createSchema>;
@@ -51,7 +52,7 @@ export default function JoinHouseholdScreen() {
       await createHousehold(data.name);
       router.replace('/(app)/(home)');
     } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : 'Failed to create household');
+      Alert.alert('错误', err instanceof Error ? err.message : '创建家庭失败');
     }
   };
 
@@ -60,35 +61,34 @@ export default function JoinHouseholdScreen() {
       await joinHousehold(data.inviteCode);
       router.replace('/(app)/(home)');
     } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : 'Failed to join household');
+      Alert.alert('错误', err instanceof Error ? err.message : '加入家庭失败');
     }
   };
 
   if (mode === 'choose') {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.header}>
-          <Text style={styles.emoji}>🏡</Text>
-          <Text style={styles.title}>Your Household</Text>
+          <Text style={styles.title}>你的家庭</Text>
           <Text style={styles.subtitle}>
-            Create a new household or join an existing one with an invite code.
+            创建新家庭，或使用邀请码加入已有家庭。
           </Text>
         </View>
 
         <View style={styles.choices}>
           <TouchableOpacity style={styles.choiceCard} onPress={() => setMode('create')}>
-            <Text style={styles.choiceEmoji}>✨</Text>
-            <Text style={styles.choiceTitle}>Create Household</Text>
-            <Text style={styles.choiceDesc}>Start fresh with a new shared space</Text>
+            <Text style={styles.choiceEmoji}>🏠</Text>
+            <Text style={styles.choiceTitle}>创建家庭</Text>
+            <Text style={styles.choiceDesc}>创建一个全新的共享空间</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.choiceCard} onPress={() => setMode('join')}>
             <Text style={styles.choiceEmoji}>🔑</Text>
-            <Text style={styles.choiceTitle}>Join Household</Text>
-            <Text style={styles.choiceDesc}>Enter an invite code from your household</Text>
+            <Text style={styles.choiceTitle}>加入家庭</Text>
+            <Text style={styles.choiceDesc}>输入家庭成员发送的邀请码</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -100,8 +100,7 @@ export default function JoinHouseholdScreen() {
       >
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <View style={styles.header}>
-            <Text style={styles.emoji}>✨</Text>
-            <Text style={styles.title}>Create Household</Text>
+            <Text style={styles.title}>创建家庭</Text>
           </View>
 
           <View style={styles.form}>
@@ -110,8 +109,8 @@ export default function JoinHouseholdScreen() {
               name="name"
               render={({ field: { onChange, onBlur, value } }) => (
                 <Input
-                  label="Household Name"
-                  placeholder="The Smith House"
+                  label="家庭名称"
+                  placeholder="我们的小家"
                   autoCapitalize="words"
                   onChangeText={onChange}
                   onBlur={onBlur}
@@ -125,11 +124,12 @@ export default function JoinHouseholdScreen() {
               loading={createForm.formState.isSubmitting}
               fullWidth
               size="lg"
+              style={{ backgroundColor: Colors.ink }}
             >
-              Create Household
+              创建家庭
             </Button>
             <Button variant="ghost" onPress={() => setMode('choose')} fullWidth>
-              Back
+              返回
             </Button>
           </View>
         </ScrollView>
@@ -144,8 +144,7 @@ export default function JoinHouseholdScreen() {
     >
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
-          <Text style={styles.emoji}>🔑</Text>
-          <Text style={styles.title}>Join Household</Text>
+          <Text style={styles.title}>加入家庭</Text>
         </View>
 
         <View style={styles.form}>
@@ -154,7 +153,7 @@ export default function JoinHouseholdScreen() {
             name="inviteCode"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="Invite Code"
+                label="邀请码"
                 placeholder="ABC123"
                 autoCapitalize="characters"
                 maxLength={6}
@@ -170,11 +169,12 @@ export default function JoinHouseholdScreen() {
             loading={joinForm.formState.isSubmitting}
             fullWidth
             size="lg"
+            style={{ backgroundColor: Colors.ink }}
           >
-            Join Household
+            加入家庭
           </Button>
           <Button variant="ghost" onPress={() => setMode('choose')} fullWidth>
-            Back
+            返回
           </Button>
         </View>
       </ScrollView>
@@ -196,6 +196,8 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     gap: Spacing.sm,
+    paddingTop: Spacing.xxl,
+    paddingHorizontal: Spacing.xl,
   },
   emoji: {
     fontSize: 64,

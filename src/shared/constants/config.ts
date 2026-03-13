@@ -23,6 +23,8 @@ export const FIRESTORE_COLLECTIONS = {
   TASKS: 'tasks',
   SHARED_LISTS: 'sharedLists',
   POINTS_LEDGER: 'pointsLedger',
+  REWARDS: 'rewards',
+  REDEMPTIONS: 'redemptions',
 } as const;
 
 export const FIRESTORE_SUBCOLLECTIONS = {

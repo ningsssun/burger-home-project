@@ -1,0 +1,2411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CASA 卡萨 — Product Spec</title>
+<style>
+  /* SF Pro via system font stack — renders SF Pro on Apple devices */
+
+  :root {
+    --sand: #FFFFFF;
+    --ink: #1E0517;
+    --terracotta: #F1B1DF;
+    --terracotta-light: #F1B1DF;
+    --sage: #F1B1DF;
+    --sage-light: #F1B1DF;
+    --amber: #1E0517;
+    --amber-light: #FFFFFF;
+    --slate: #7A5A74;
+    --slate-light: #FFFFFF
+    --mist: #FFFFFF;
+    --gray: #7A5A74;
+    --border: #E8E8E8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+    background: var(--sand);
+    color: var(--ink);
+    line-height: 1.6;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    padding: 80px 72px;
+    position: relative;
+    overflow: hidden;
+    gap: 48px;
+  }
+
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 55% 60% at 90% 20%, rgba(196,82,42,0.07) 0%, transparent 65%),
+      radial-gradient(ellipse 40% 50% at 5% 85%, rgba(192,139,47,0.09) 0%, transparent 55%),
+      radial-gradient(ellipse 45% 40% at 50% 110%, rgba(90,122,98,0.06) 0%, transparent 60%);
+  }
+
+  .hero-left { position: relative; z-index: 1; }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--terracotta-light);
+    color: var(--terracotta);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 100px;
+    margin-bottom: 28px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .hero-wordmark {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+    font-size: clamp(64px, 8vw, 108px);
+    font-weight: 900;
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+    margin-bottom: 12px;
+    animation: fadeUp 0.5s 0.08s ease both;
+  }
+
+  .hero-wordmark .accent { color: var(--terracotta); font-style: italic; }
+
+  .hero-chinese {
+    font-size: 18px;
+    color: var(--gray);
+    font-weight: 400;
+    margin-bottom: 28px;
+    letter-spacing: 0.06em;
+    animation: fadeUp 0.5s 0.15s ease both;
+  }
+
+  .hero-desc {
+    font-size: 9.5px;
+    color: var(--gray);
+    max-width: 480px;
+    line-height: 1.75;
+    margin-bottom: 44px;
+    font-weight: 400;
+    animation: fadeUp 0.5s 0.2s ease both;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 40px;
+    animation: fadeUp 0.5s 0.28s ease both;
+  }
+
+  .stat { display: flex; flex-direction: column; gap: 4px; }
+  .stat-num {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .stat-num em { color: var(--terracotta); font-style: normal; }
+  .stat-label { font-size: 12px; color: var(--gray); font-weight: 500; }
+
+  /* Hero right — cartoon house illustration */
+  .hero-right {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    animation: fadeLeft 0.7s 0.35s ease both;
+  }
+
+  .house-scene {
+    width: 100%;
+    max-width: 460px;
+    aspect-ratio: 1;
+    position: relative;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0;
+    background: rgba(247,243,237,0.94);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 72px;
+    z-index: 100;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+  }
+
+  .nav-btn {
+    padding: 15px 18px;
+    font-size: 9.5px;
+    font-weight: 600;
+    color: var(--gray);
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+    letter-spacing: 0.01em;
+  }
+  .nav-btn:hover { color: var(--ink); }
+  .nav-btn.active { color: var(--terracotta); border-bottom-color: var(--terracotta); }
+
+  /* ── SECTIONS ── */
+  .section {
+    padding: 88px 72px;
+    border-bottom: 1px solid var(--border);
+    display: none;
+  }
+  .section.active { display: block; }
+
+  .section-tag {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--terracotta);
+    margin-bottom: 10px;
+  }
+
+  .section-title {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+    font-size: clamp(32px, 4vw, 52px);
+    line-height: 1.08;
+    margin-bottom: 18px;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
+
+  .section-intro {
+    font-size: 17px;
+    color: var(--gray);
+    max-width: 620px;
+    margin-bottom: 56px;
+    line-height: 1.75;
+  }
+
+  /* ── FEATURE GRID ── */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 18px;
+  }
+
+  .feature-card {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 18px;
+    padding: 26px;
+    transition: all 0.22s;
+  }
+  .feature-card:hover {
+    border-color: var(--terracotta-light);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 36px rgba(196,82,42,0.07);
+  }
+
+  .feature-icon { font-size: 26px; margin-bottom: 14px; display: block; }
+
+  .feature-name {
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    font-size: 7px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 100px;
+  }
+  .badge.mvp { background: var(--sage-light); color: var(--sage); }
+  .badge.v2  { background: var(--amber-light); color: #1E0517; }
+  .badge.v3  { background: var(--slate-light); color: var(--slate); }
+  .badge.china { background: var(--terracotta-light); color: var(--terracotta); }
+
+  .feature-desc { font-size: 14px; color: var(--gray); line-height: 1.65; }
+
+  /* ── PERSONAS ── */
+  .personas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 44px;
+  }
+
+  .persona {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 18px;
+    padding: 26px;
+  }
+
+  .persona-avatar {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-bottom: 14px;
+  }
+
+  .persona-name { font-weight: 700; font-size: 9.5px; margin-bottom: 2px; }
+  .persona-role { font-size: 12px; color: var(--gray); margin-bottom: 14px; font-weight: 500; }
+  .persona-pain {
+    font-size: 9.5px;
+    background: var(--terracotta-light);
+    color: #1E0517;
+    padding: 10px 13px;
+    border-radius: 10px;
+    line-height: 1.55;
+    margin-bottom: 9px;
+  }
+  .persona-need {
+    font-size: 9.5px;
+    background: var(--sage-light);
+    color: #1E0517;
+    padding: 10px 13px;
+    border-radius: 10px;
+    line-height: 1.55;
+  }
+
+  /* ── TECH GRID ── */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+  }
+
+  .tech-card {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    transition: border-color 0.2s;
+  }
+  .tech-card:hover { border-color: var(--terracotta-light); }
+
+  .tech-layer {
+    font-size: 7px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gray);
+    margin-bottom: 6px;
+  }
+  .tech-name { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+  .tech-why { font-size: 9.5px; color: var(--gray); line-height: 1.5; }
+
+  /* ── INSIGHT BOX ── */
+  .insight-box {
+    background: var(--ink);
+    color: white;
+    border-radius: 20px;
+    padding: 36px;
+    margin: 36px 0;
+  }
+  .insight-box h3 { color: var(--terracotta); font-size: 18px; margin-bottom: 12px; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif; }
+  .insight-box p { color: rgba(255,255,255,0.72); font-size: 15px; line-height: 1.75; }
+
+  /* ── DATA STAT CARDS ── */
+  .data-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+
+  .data-card {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 18px;
+    padding: 24px 26px;
+    position: relative;
+    overflow: hidden;
+  }
+  .data-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 18px 18px 0 0;
+  }
+  .data-card.tc::before { background: var(--terracotta); }
+  .data-card.sg::before { background: var(--sage); }
+  .data-card.ab::before { background: var(--amber); }
+  .data-card.sl::before { background: var(--slate); }
+
+  .data-num {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 38px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+    color: var(--ink);
+  }
+  .data-num em { font-style: normal; }
+  .data-card.tc .data-num em { color: var(--terracotta); }
+  .data-card.sg .data-num em { color: var(--sage); }
+  .data-card.ab .data-num em { color: var(--amber); }
+  .data-card.sl .data-num em { color: var(--slate); }
+
+  .data-label { font-size: 9.5px; color: var(--gray); font-weight: 500; line-height: 1.5; }
+  .data-source { font-size: 7px; color: var(--gray); opacity: 0.6; margin-top: 8px; font-style: italic; }
+
+  /* ── TWO COL ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 36px;
+  }
+  @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+  h3 {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 18px;
+    margin-bottom: 20px;
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .divider { height: 1px; background: var(--border); margin: 40px 0; }
+
+  /* ── SCREENS ── */
+  .screens-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 22px;
+  }
+
+  .screen-card {
+    border-radius: 24px;
+    overflow: hidden;
+    border: 1.5px solid var(--border);
+    background: white;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    transition: transform 0.22s, box-shadow 0.22s;
+  }
+  .screen-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 40px rgba(0,0,0,0.1);
+  }
+
+  .screen-preview {
+    height: 340px;
+    padding: 18px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+  }
+
+  .screen-statusbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2px;
+    margin-bottom: 6px;
+  }
+  .screen-time { font-size: 7.5px; font-weight: 700; color: var(--ink); }
+  .screen-icons { font-size: 7.5px; color: var(--ink); }
+
+  .screen-label {
+    font-weight: 700;
+    font-size: 9.5px;
+    padding: 13px 16px;
+    border-top: 1px solid var(--border);
+    background: white;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  /* ── Screen inner components ── */
+  .si-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .si-avatar {
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9.5px;
+    flex-shrink: 0;
+  }
+  .si-tag {
+    font-size: 7.5px;
+    padding: 2px 7px;
+    border-radius: 100px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .si-task {
+    background: white;
+    border-radius: 10px;
+    padding: 9px 11px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1.5px solid var(--border);
+  }
+  .si-task-label { font-size: 9.5px; font-weight: 600; flex: 1; }
+  .si-check {
+    width: 18px; height: 18px;
+    border-radius: 6px;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 7.5px;
+  }
+  .si-check.done { background: var(--sage); border-color: var(--sage); color: white; }
+  .si-bar {
+    height: 5px;
+    background: var(--border);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+  .si-bar-fill { height: 100%; border-radius: 100px; }
+
+  .si-member-row {
+    background: white;
+    border-radius: 10px;
+    padding: 8px 11px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1.5px solid var(--border);
+  }
+  .si-member-name { font-size: 9.5px; font-weight: 600; flex: 1; }
+  .si-pts { font-size: 7px; font-weight: 700; margin-left: auto; }
+
+  /* ── Animations ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeLeft {
+    from { opacity: 0; transform: translateX(24px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; padding: 60px 28px; }
+    .hero-right { display: none; }
+    nav { padding: 0 28px; }
+    .section { padding: 60px 28px; }
+    .hero-stats { flex-wrap: wrap; gap: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ HERO ═══ -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-left">
+    <div class="hero-badge">🇨🇳 Implementation Guideline · 2025</div>
+    <h1 class="hero-wordmark">C<span class="accent">A</span>S<span class="accent">A</span></h1>
+    <div class="hero-chinese">卡萨 — "Home" in Spanish &amp; Italian · China's family management app</div>
+    <p class="hero-desc">
+      A household management app built from the ground up for Chinese families — with WeChat-first design, grandparent-friendly modes, AI fairness insights, and gamification tuned for China's unique 三代同堂 family structure.
+    </p>
+    <div class="hero-stats">
+      <div class="stat">
+        <span class="stat-num">493<em>M</em></span>
+        <span class="stat-label">Chinese households</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">0</span>
+        <span class="stat-label">Dominant competitors</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">¥98<em>/yr</em></span>
+        <span class="stat-label">Target premium price</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">3<em>mo</em></span>
+        <span class="stat-label">MVP build time</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cartoon house illustration -->
+  <div class="hero-right">
+    <svg class="house-scene" viewBox="0 0 460 460" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- House base -->
+      <rect x="80" y="220" width="300" height="200" rx="8" fill="#F1B1DF"/>
+      <!-- Roof -->
+      <polygon points="60,230 230,80 400,230" fill="#1E0517"/>
+      <!-- Door -->
+      <rect x="185" y="320" width="90" height="100" rx="8" fill="#F1B1DF"/>
+      <circle cx="265" cy="372" r="5" fill="#1E0517"/>
+      <!-- Left window -->
+      <rect x="100" y="255" width="75" height="60" rx="6" fill="#FFFFFF"/>
+      <line x1="137" y1="255" x2="137" y2="315" stroke="#7A5A74" stroke-width="2"/>
+      <line x1="100" y1="285" x2="175" y2="285" stroke="#7A5A74" stroke-width="2"/>
+      <!-- Right window -->
+      <rect x="285" y="255" width="75" height="60" rx="6" fill="#FFFFFF"/>
+      <line x1="322" y1="255" x2="322" y2="315" stroke="#7A5A74" stroke-width="2"/>
+      <line x1="285" y1="285" x2="360" y2="285" stroke="#7A5A74" stroke-width="2"/>
+      <!-- Ground -->
+      <rect x="50" y="418" width="360" height="14" rx="7" fill="#F1B1DF"/>
+      <!-- Chimney -->
+      <rect x="295" y="115" width="30" height="55" rx="4" fill="#1E0517"/>
+      <!-- Smoke puffs -->
+      <circle cx="308" cy="105" r="10" fill="rgba(200,200,200,0.45)"/>
+      <circle cx="320" cy="92" r="8" fill="rgba(200,200,200,0.3)"/>
+      <circle cx="312" cy="78" r="7" fill="rgba(200,200,200,0.2)"/>
+      <!-- Family stick figures inside windows -->
+      <!-- Left window figure (grandpa) -->
+      <circle cx="120" cy="268" r="6" fill="#1E0517"/>
+      <line x1="120" y1="274" x2="120" y2="298" stroke="#1E0517" stroke-width="2.5"/>
+      <line x1="108" y1="284" x2="132" y2="284" stroke="#1E0517" stroke-width="2.5"/>
+      <line x1="120" y1="298" x2="112" y2="310" stroke="#1E0517" stroke-width="2.5"/>
+      <line x1="120" y1="298" x2="128" y2="310" stroke="#1E0517" stroke-width="2.5"/>
+      <!-- Right window figure (mom) -->
+      <circle cx="305" cy="268" r="6" fill="#1E0517"/>
+      <line x1="305" y1="274" x2="305" y2="298" stroke="#1E0517" stroke-width="2.5"/>
+      <line x1="293" y1="284" x2="317" y2="284" stroke="#1E0517" stroke-width="2.5"/>
+      <line x1="305" y1="298" x2="297" y2="310" stroke="#1E0517" stroke-width="2.5"/>
+      <line x1="305" y1="298" x2="313" y2="310" stroke="#1E0517" stroke-width="2.5"/>
+      <!-- Child figure near door -->
+      <circle cx="225" cy="315" r="5" fill="#F1B1DF"/>
+      <line x1="225" y1="320" x2="225" y2="338" stroke="#F1B1DF" stroke-width="2.5"/>
+      <line x1="216" y1="328" x2="234" y2="328" stroke="#F1B1DF" stroke-width="2.5"/>
+      <line x1="225" y1="338" x2="218" y2="348" stroke="#F1B1DF" stroke-width="2.5"/>
+      <line x1="225" y1="338" x2="232" y2="348" stroke="#F1B1DF" stroke-width="2.5"/>
+      <!-- Decorative elements -->
+      <!-- Flower left -->
+      <circle cx="70" cy="418" r="8" fill="#F1B1DF"/>
+      <circle cx="70" cy="408" r="5" fill="#1E0517"/>
+      <!-- Flower right -->
+      <circle cx="395" cy="418" r="8" fill="#F1B1DF"/>
+      <circle cx="395" cy="408" r="5" fill="#1E0517"/>
+      <!-- Star / sparkle -->
+      <text x="40" y="180" font-size="18" fill="#1E0517" opacity="0.7">✦</text>
+      <text x="400" y="160" font-size="14" fill="#F1B1DF" opacity="0.6">✦</text>
+      <text x="420" y="310" font-size="10" fill="#1E0517" opacity="0.5">✦</text>
+    </svg>
+  </div>
+</div>
+
+<!-- ═══ NAV ═══ -->
+<nav id="nav">
+  <button class="nav-btn active" onclick="showSection('overview', this)">Overview</button>
+  <button class="nav-btn" onclick="showSection('users', this)">Users</button>
+  <button class="nav-btn" onclick="showSection('features', this)">Features</button>
+  <button class="nav-btn" onclick="showSection('screens', this)">Screens</button>
+  <button class="nav-btn" onclick="showSection('tech', this)">Tech Stack</button>
+</nav>
+
+<!-- ═══ OVERVIEW ═══ -->
+<section class="section active" id="overview">
+  <div class="section-tag">The Opportunity</div>
+  <h2 class="section-title">Why China Needs CASA</h2>
+  <p class="section-intro">The household management app space in China is completely untapped. Heima proved the concept works in the West. No one has built a polished, China-native version — until now.</p>
+
+  <div class="insight-box">
+    <h3>The Core Insight</h3>
+    <p>Chinese families are structurally different from Western ones — they often have 3 generations under one roof, grandparents actively managing childcare and cooking, and dual-income parents with near-zero spare time. The pain of household coordination is <em>more acute</em> in China, not less. Yet no good app exists. CASA fills that gap.</p>
+  </div>
+
+  <!-- Market Size Data -->
+  <h3>📊 Market Size — The Numbers</h3>
+  <div class="data-grid">
+    <div class="data-card tc">
+      <div class="data-num">493<em>M</em></div>
+      <div class="data-label">Total households in China (National Bureau of Statistics, 2020 Census)</div>
+      <div class="data-source">Source: 第七次全国人口普查</div>
+    </div>
+    <div class="data-card sg">
+      <div class="data-num">~120<em>M</em></div>
+      <div class="data-label">Urban middle-class families — CASA's primary target segment</div>
+      <div class="data-source">Source: McKinsey China Consumer Report</div>
+    </div>
+    <div class="data-card ab">
+      <div class="data-num">¥240<em>M+</em></div>
+      <div class="data-label">Revenue potential at just 0.5% penetration of urban families × ¥98/yr</div>
+      <div class="data-source">CASA internal projection</div>
+    </div>
+    <div class="data-card sl">
+      <div class="data-num">¥715<em>B</em></div>
+      <div class="data-label">China smart home market size in 2023 (yuan), proving digital home adoption</div>
+      <div class="data-source">Source: AskCI Consulting / Statista 2024</div>
+    </div>
+    <div class="data-card tc">
+      <div class="data-num">65<em>%</em></div>
+      <div class="data-label">China's urbanization rate (2022), driving demand for household management tools</div>
+      <div class="data-source">Source: National Bureau of Statistics China</div>
+    </div>
+    <div class="data-card sg">
+      <div class="data-num">22<em>%</em></div>
+      <div class="data-label">Of China's population is 60+ years old (2024) — CASA's Elder Mode addresses this</div>
+      <div class="data-source">Source: 国家统计年鉴 2025</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- China-Specific Problems -->
+  <h3>🇨🇳 China-Specific Problems — Deep Dive</h3>
+
+  <div class="data-grid" style="margin-bottom: 28px">
+    <div class="data-card tc">
+      <div class="data-num">~4<em>hrs</em></div>
+      <div class="data-label">Average hours per day Chinese women spend on housework vs. 1.5 hrs for men — the largest gender gap in East Asia</div>
+      <div class="data-source">Source: ILO / China Time Use Survey</div>
+    </div>
+    <div class="data-card ab">
+      <div class="data-num">2.62</div>
+      <div class="data-label">Average household size (2020), down from 3.10 in 2010 — smaller families need smarter coordination tools</div>
+      <div class="data-source">Source: 七人普 National Census 2020</div>
+    </div>
+    <div class="data-card sg">
+      <div class="data-num">70<em>%+</em></div>
+      <div class="data-label">Of Chinese elderly aged 80+ still live with their children — multi-gen household coordination is a real, widespread need</div>
+      <div class="data-source">Source: PKU CFPS Research</div>
+    </div>
+    <div class="data-card sl">
+      <div class="data-num">#1</div>
+      <div class="data-label">家务不平等 (chore inequality) is a top trending topic on 小红书 and 知乎 — millions actively searching for solutions</div>
+      <div class="data-source">Source: Xiaohongshu trending topics 2024</div>
+    </div>
+  </div>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <span class="feature-icon">👴👵</span>
+      <div class="feature-name">三代同堂 — 3-Generation Households</div>
+      <p class="feature-desc">Over 70% of elderly parents aged 80+ in China live with their children or grandchildren. Grandparents handle cooking, school pickups, and cleaning — but coordination between tech-savvy young adults and elderly relatives breaks down constantly. No existing app handles this age gap.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">⚖️</span>
+      <div class="feature-name">家务不平等 — The Chore Inequality Crisis</div>
+      <p class="feature-desc">Chinese women spend nearly 4 hours daily on housework vs. 1.5 hours for men — one of the most extreme gender gaps in East Asia. Academic research (CFPS longitudinal data) shows having a child dramatically widens this gap further. This is a top-trending social issue on 小红书, 知乎, and 抖音. CASA makes invisible labor visible.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">👶</span>
+      <div class="feature-name">二孩/三孩 Policy — Growing Family Complexity</div>
+      <p class="feature-desc">China's government is actively encouraging families to have 2–3 children through policy incentives (extended maternity leave, childcare subsidies). More children = exponentially more household complexity. A family with 2 children, 2 grandparents, and 2 working parents needs coordination tools, not just group chats.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">📱</span>
+      <div class="feature-name">WeChat-First Infrastructure</div>
+      <p class="feature-desc">China's 1.3 billion WeChat users already coordinate family life on the platform — but it's manual, unstructured, and easily lost in chat history. An app that lives inside WeChat as a Mini Program has zero friction to adoption. Grandparents who already use WeChat need no new app to install or learn.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🏙️</span>
+      <div class="feature-name">Urban Middle-Class Spending Shift</div>
+      <p class="feature-desc">Chinese urban consumers now regularly pay for premium apps. Keep (fitness), BOSS直聘 (jobs), 小睡眠 (sleep), and 得到 (knowledge) all monetize at ¥100–300/year successfully. The ¥98/year CASA premium tier is well within the "easily justified" spend range for urban families managing a home together.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">📉</span>
+      <div class="feature-name">No Dominant Competitor Exists</div>
+      <p class="feature-desc">Heima (Iceland) proved product-market fit in the West. China has no equivalent: 做家务 app is basic and untouched; 钉钉/飞书 are work tools; WeChat groups are unstructured. This is a rare blue-ocean opportunity in one of the world's largest digital consumer markets — ¥165B home appliance market (Statista 2025) shows strong household investment culture.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ USERS ═══ -->
+<section class="section" id="users">
+  <div class="section-tag">Target Users</div>
+  <h2 class="section-title">Who Uses CASA</h2>
+  <p class="section-intro">CASA must work for everyone in a Chinese family — from a 30-year-old working mom on an iPhone to a 68-year-old grandfather on a Huawei with large text enabled. One app, four experiences.</p>
+
+  <div class="personas">
+    <div class="persona">
+      <div class="persona-avatar" style="background: var(--terracotta-light)">👩</div>
+      <div class="persona-name">张三, 32</div>
+      <div class="persona-role">Working mother · Software Engineer</div>
+      <div class="persona-pain">😤 "I end up doing 80% of the housework while also managing shopping, remembering everyone's schedules, and coordinating with my in-laws. My husband has no idea what needs doing."</div>
+      <div class="persona-need">✅ Needs: Fair task visibility, one-tap assign to husband, weekly family progress summary, AI fairness report to share</div>
+    </div>
+    <div class="persona">
+      <div class="persona-avatar" style="background: var(--slate-light)">👨</div>
+      <div class="persona-name">李四, 35</div>
+      <div class="persona-role">张三's husband · Marketing Manager</div>
+      <div class="persona-pain">😓 "I want to help but I never know what needs doing. I get reminded verbally but forget. I'd much rather check a list on my phone — I respond to systems, not nagging."</div>
+      <div class="persona-need">✅ Needs: Simple daily task list, push notification reminders, points for completed chores, no friction to get started</div>
+    </div>
+    <div class="persona">
+      <div class="persona-avatar" style="background: var(--amber-light)">👴</div>
+      <div class="persona-name">王五, 67</div>
+      <div class="persona-role">Retired grandfather · Helps with childcare &amp; cooking</div>
+      <div class="persona-pain">😕 "My daughter-in-law sends me tasks on WeChat but I forget them. Young people's apps are all too small and complicated. I just want to know: what do I need to do today?"</div>
+      <div class="persona-need">✅ Needs: Giant text, WeChat-based reminders (no new app to install), very simple 1-tap task completion, Elder Mode interface</div>
+    </div>
+    <div class="persona">
+      <div class="persona-avatar" style="background: var(--sage-light)">🧒</div>
+      <div class="persona-name">马六, 9</div>
+      <div class="persona-role">Primary school student · Youngest 家庭成员</div>
+      <div class="persona-pain">😶 "I never know which chores are mine this week and mom always forgets to give me my allowance. I wish there was a game to track it."</div>
+      <div class="persona-need">✅ Needs: Fun points and badge system, allowance tracking tied to chore completion, simple colorful kid-friendly interface</div>
+    </div>
+  </div>
+
+  <div class="insight-box">
+    <h3>Design Principle: One App, Four Distinct Experiences</h3>
+    <p>The same app must serve a 32-year-old iPhone power user and a 67-year-old Android user who barely uses apps. CASA solves this with role-based UI modes — each 家庭成员 gets an interface tuned to their age, tech fluency, and responsibilities. This is something Heima doesn't do, and it's a key differentiator for China's 三代同堂 market.</p>
+  </div>
+</section>
+
+<!-- ═══ FEATURES ═══ -->
+<section class="section" id="features">
+  <div class="section-tag">Product Features</div>
+  <h2 class="section-title">What CASA Does</h2>
+  <p class="section-intro">Features are tagged by release phase. Build MVP fast, validate with real families, then layer on advanced features based on actual user data.</p>
+
+  <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:36px">
+    <span class="badge mvp" style="font-size:10px; padding:5px 14px">MVP — Month 1–3</span>
+    <span class="badge v2" style="font-size:10px; padding:5px 14px">V2 — Month 4–6</span>
+    <span class="badge v3" style="font-size:10px; padding:5px 14px">V3 — Month 7–12</span>
+    <span class="badge china" style="font-size:10px; padding:5px 14px">🇨🇳 China-unique</span>
+  </div>
+
+  <h3>Core Features</h3>
+  <div class="feature-grid" style="margin-bottom:40px">
+    <div class="feature-card">
+      <span class="feature-icon">📋</span>
+      <div class="feature-name">家务看板 Chore Board <span class="badge mvp">MVP</span></div>
+      <p class="feature-desc">Visual weekly chore chart. Assign tasks to any 家庭成员. Daily, weekly, monthly repeat cycles. Color-coded by person. One-tap complete with satisfying animation.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">👨‍👩‍👧‍👦</span>
+      <div class="feature-name">家庭成员 Family Profiles <span class="badge mvp">MVP</span></div>
+      <p class="feature-desc">Add all 家庭成员s with roles (妈妈, 爸爸, 爷爷, 孩子). Each gets their own task view. Invite via WeChat in one tap — no phone number needed.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🏆</span>
+      <div class="feature-name">积分系统 Points &amp; Rewards <span class="badge mvp">MVP</span></div>
+      <p class="feature-desc">Every completed chore earns points. Family leaderboard. Kids earn points redeemable for allowance. Parents set custom rewards (screen time, outings, toys).</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🔔</span>
+      <div class="feature-name">智能提醒 Smart Reminders <span class="badge mvp">MVP</span></div>
+      <p class="feature-desc">Push notifications + WeChat template message reminders. Gentle nudge before deadline. Grandparents receive via WeChat — no app installation required.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">📊</span>
+      <div class="feature-name">家务报告 Weekly Reports <span class="badge mvp">MVP</span></div>
+      <p class="feature-desc">Beautiful weekly summary: who did what, fairness percentage, total family points. Shareable to WeChat Moments — "我们家本周家务贡献 78%".</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🛒</span>
+      <div class="feature-name">购物清单 Shopping Lists <span class="badge mvp">MVP</span></div>
+      <p class="feature-desc">Shared real-time shopping list. Any 家庭成员 can add items. Grandpa can check items off at the market. Real-time sync via Socket.io.</p>
+    </div>
+  </div>
+
+  <h3>China-Unique Features</h3>
+  <div class="feature-grid" style="margin-bottom:40px">
+    <div class="feature-card">
+      <span class="feature-icon">👴</span>
+      <div class="feature-name">老人模式 Elder Mode <span class="badge china">🇨🇳</span> <span class="badge mvp">MVP</span></div>
+      <p class="feature-desc">One tap switches to giant text, simplified UI with only 3 functions: see my tasks, mark done, call family. High contrast. Designed with grandparents in beta testing. No other household app does this.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🧧</span>
+      <div class="feature-name">春节特别模式 Spring Festival Mode <span class="badge china">🇨🇳</span> <span class="badge v2">V2</span></div>
+      <p class="feature-desc">Pre-loaded 大扫除 (Spring Festival cleaning) checklist. Special bonus points during 年前. Festive terracotta &amp; gold UI theme. The most share-worthy feature of the year.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🤖</span>
+      <div class="feature-name">AI 家务助手 AI Chore Assistant <span class="badge china">🇨🇳</span> <span class="badge v2">V2</span></div>
+      <p class="feature-desc">Input family size, apartment size, work schedules. AI generates a fair weekly chore plan. Detects imbalance and suggests redistribution. Powered by Claude API with 文心一言 fallback.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🎁</span>
+      <div class="feature-name">积分兑换 Points → Real Rewards <span class="badge china">🇨🇳</span> <span class="badge v3">V3</span></div>
+      <p class="feature-desc">Partner with JD.com or Meituan — family points can redeem real vouchers. Massive engagement driver unique to China's super-app ecosystem.</p>
+    </div>
+  </div>
+
+  <h3>Advanced Features</h3>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <span class="feature-icon">📦</span>
+      <div class="feature-name">家庭库存 Home Inventory <span class="badge v2">V2</span></div>
+      <p class="feature-desc">Track household supplies. Auto-alert when running low. Connect to JD/Taobao to reorder with one tap.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">💰</span>
+      <div class="feature-name">家庭账本 Family Budget <span class="badge v3">V3</span></div>
+      <p class="feature-desc">Track shared household expenses. Who paid for what. Monthly summaries. Chinese families are highly financially collaborative.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">📅</span>
+      <div class="feature-name">家庭日历 Shared Calendar <span class="badge v2">V2</span></div>
+      <p class="feature-desc">Kids' school events, doctor appointments, birthdays. Syncs with phone calendar. Built-in 节气 Chinese solar terms events.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SCREENS ═══ -->
+<section class="section" id="screens">
+  <div class="section-tag">UI Concept</div>
+  <h2 class="section-title">App Screen Concepts</h2>
+  <p class="section-intro">Warm, grounded, and purposeful. Full phone mockups with bottom navigation bar — 5 tabs, each with a hand-drawn SVG icon. The 报表 tab includes a top tab bar for multiple report views.</p>
+
+  <style>
+    /* ── Phone shell ── */
+    .phone-shell {
+      width: 220px;
+      border-radius: 36px;
+      background: #1A1A1A;
+      padding: 10px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25), 0 0 0 1.5px #1E0517;
+      flex-shrink: 0;
+    }
+    .phone-screen {
+      border-radius: 28px;
+      overflow: hidden;
+      background: #FFFFFF;
+      display: flex;
+      flex-direction: column;
+      height: 440px;
+      position: relative;
+    }
+    /* Status bar */
+    .ph-status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 16px 4px;
+      background: #FFFFFF;
+      flex-shrink: 0;
+    }
+    .ph-time { font-size: 7px; font-weight: 800; color: #1E0517; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif; }
+    .ph-icons {
+      display: flex; gap: 4px; align-items: center;
+    }
+    .ph-icons svg { display: block; }
+    /* Content area */
+    .ph-content {
+      flex: 1;
+      padding: 0 12px 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    /* Bottom nav */
+    .ph-nav {
+      display: flex;
+      align-items: center;
+      background: white;
+      border-top: 1px solid #E8E8E8;
+      padding: 6px 0 10px;
+      flex-shrink: 0;
+    }
+    .ph-nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+    }
+    .ph-nav-label {
+      font-size: 7px;
+      font-weight: 600;
+      color: #1E0517;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+    }
+    .ph-nav-item.active .ph-nav-label { color: #1E0517; }
+    /* CASA home icon pill */
+    .ph-nav-casa {
+      background: #F1B1DF;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 0;
+    }
+    /* Top tab bar for 报表 */
+    .ph-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid #E8E8E8;
+      background: #FFFFFF;
+      flex-shrink: 0;
+      padding: 0 12px;
+    }
+    .ph-tab {
+      font-size: 7.5px;
+      font-weight: 700;
+      padding: 7px 8px 6px;
+      color: #C4A8C0;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+    }
+    .ph-tab.active { color: #F1B1DF; border-bottom-color: #F1B1DF; }
+    /* Shared inner elements */
+    .ph-greeting-sub { font-size: 7.5px; color: #7A5A74; font-weight: 500; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif; }
+    .ph-greeting-name { font-size: 9.5px; font-weight: 800; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif; color: #1E0517; line-height:1.1; }
+    .ph-card {
+      border-radius: 16px; padding: 12px 14px;
+      display: flex; align-items: center; gap: 9px;
+    }
+    .ph-card-label { font-size: 7px; font-weight: 700; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif; color: white; }
+    .ph-card-sub { font-size: 7px; opacity: 0.82; margin-top: 1px; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif; }
+    .ph-card-num { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif; font-size: 18px; font-weight: 700; color: white; margin-left: auto; }
+    .ph-row {
+      background: #F4F4F4; border-radius: 10px;
+      padding: 8px 10px; display: flex; align-items: center; gap: 8px;
+      border: none;
+    }
+    .ph-row-label { font-size: 7px; font-weight: 600; flex: 1; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif; color: #1E0517; }
+    .ph-tag {
+      font-size: 7px; padding: 2px 7px; border-radius: 100px;
+      font-weight: 700; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif; flex-shrink: 0;
+    }
+    .ph-check {
+      width: 16px; height: 16px; border-radius: 5px;
+      border: 1.5px solid #DCDCDC; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 7px;
+    }
+    .ph-check.done { background: #F1B1DF; border-color: #F1B1DF; color: white; }
+    .ph-bar { height: 4px; background: #FFFFFF; border-radius: 100px; overflow: hidden; }
+    .ph-bar-fill { height: 100%; border-radius: 100px; }
+    .ph-section-label { font-size: 7px; font-weight: 700; color: #7A5A74; letter-spacing: 0.08em; text-transform: uppercase; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif; }
+    .ph-big-label { font-size: 9.5px; font-weight: 800; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif; color: #1E0517; }
+    /* Screen wrapper row */
+    .screens-row {
+      display: flex;
+      gap: 28px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+    .screen-caption {
+      text-align: center;
+      margin-top: 14px;
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #1E0517;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+    }
+    .screen-caption-sub {
+      font-size: 9.5px;
+      color: #7A5A74;
+      margin-top: 2px;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+    }
+  </style>
+
+  <!-- SVG icon defs (reusable) -->
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <!-- CASA home icon (house silhouette) -->
+      <symbol id="icon-casa" viewBox="0 0 24 24">
+        <path d="M12 3L3 10v11h6v-6h6v6h6V10L12 3z" stroke="currentColor" stroke-width="1.1" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+      </symbol>
+      <!-- 清单 checklist icon -->
+      <symbol id="icon-list" viewBox="0 0 24 24">
+        <rect x="5" y="4" width="14" height="16" rx="3" stroke="currentColor" stroke-width="1.1" fill="none"/>
+        <line x1="9" y1="9" x2="15" y2="9" stroke="currentColor" stroke-width="1.0" stroke-linecap="round"/>
+        <line x1="9" y1="12.5" x2="15" y2="12.5" stroke="currentColor" stroke-width="1.0" stroke-linecap="round"/>
+        <line x1="9" y1="16" x2="12" y2="16" stroke="currentColor" stroke-width="1.0" stroke-linecap="round"/>
+      </symbol>
+      <!-- 报表 bar chart icon -->
+      <symbol id="icon-report" viewBox="0 0 24 24">
+        <rect x="4" y="14" width="4" height="6" rx="1.2" stroke="currentColor" stroke-width="1.1" fill="none"/>
+        <rect x="10" y="9" width="4" height="11" rx="1.2" stroke="currentColor" stroke-width="1.1" fill="none"/>
+        <rect x="16" y="5" width="4" height="15" rx="1.2" stroke="currentColor" stroke-width="1.1" fill="none"/>
+      </symbol>
+      <!-- 奖励 trophy/star icon -->
+      <symbol id="icon-reward" viewBox="0 0 24 24">
+        <polygon points="12,3 14.5,9 21,9.5 16.5,14 18,20.5 12,17 6,20.5 7.5,14 3,9.5 9.5,9" stroke="currentColor" stroke-width="1.0" fill="none" stroke-linejoin="round"/>
+      </symbol>
+      <!-- 我的 person icon -->
+      <symbol id="icon-profile" viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.1" fill="none"/>
+        <path d="M5 20c0-3.87 3.13-7 7-7s7 3.13 7 7" stroke="currentColor" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <!-- ── BOTTOM NAV COMPONENT (macro) ── -->
+  <!-- Used inline in each phone -->
+
+  <div class="screens-row">
+
+    <!-- ══ SCREEN 0: Splash ══ -->
+    <div>
+      <div class="phone-shell">
+        <div class="phone-screen" style="background:#FFFFFF; justify-content:center; align-items:center;">
+          <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; padding:20px; gap:0">
+
+            <!-- Illustration: cat (#F1B1DF) + dog (#1E0517) pure line drawing, no fills -->
+            <svg width="160" height="130" viewBox="0 0 160 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+              <!-- DOG — #1E0517 line drawing, left side -->
+              <!-- body: simple oval -->
+              <ellipse cx="48" cy="88" rx="20" ry="15" stroke="#1E0517" stroke-width="1.4" stroke-linecap="round"/>
+              <!-- neck -->
+              <line x1="44" y1="74" x2="42" y2="73" stroke="#1E0517" stroke-width="1.4" stroke-linecap="round"/>
+              <line x1="52" y1="74" x2="54" y2="73" stroke="#1E0517" stroke-width="1.4" stroke-linecap="round"/>
+              <!-- head: circle -->
+              <circle cx="48" cy="62" r="12" stroke="#1E0517" stroke-width="1.4"/>
+              <!-- floppy left ear -->
+              <path d="M38 56 Q28 50 30 62 Q31 68 38 66" stroke="#1E0517" stroke-width="1.4" stroke-linecap="round"/>
+              <!-- floppy right ear -->
+              <path d="M58 56 Q68 50 66 62 Q65 68 58 66" stroke="#1E0517" stroke-width="1.4" stroke-linecap="round"/>
+              <!-- eyes: two small dots (unfilled circles) -->
+              <circle cx="43" cy="60" r="1.5" stroke="#1E0517" stroke-width="1.2"/>
+              <circle cx="53" cy="60" r="1.5" stroke="#1E0517" stroke-width="1.2"/>
+              <!-- nose: small oval outline -->
+              <ellipse cx="48" cy="65" rx="2.5" ry="1.8" stroke="#1E0517" stroke-width="1.2"/>
+              <!-- mouth: simple curve -->
+              <path d="M45 68 Q48 71 51 68" stroke="#1E0517" stroke-width="1.2" stroke-linecap="round"/>
+              <!-- tail: wavy line -->
+              <path d="M68 85 Q76 76 72 88 Q70 94 65 92" stroke="#1E0517" stroke-width="1.4" stroke-linecap="round"/>
+              <!-- 4 legs: simple lines -->
+              <line x1="36" y1="102" x2="34" y2="116" stroke="#1E0517" stroke-width="1.4" stroke-linecap="round"/>
+              <line x1="44" y1="103" x2="42" y2="117" stroke="#1E0517" stroke-width="1.4" stroke-linecap="round"/>
+              <line x1="54" y1="103" x2="56" y2="117" stroke="#1E0517" stroke-width="1.4" stroke-linecap="round"/>
+              <line x1="62" y1="102" x2="64" y2="116" stroke="#1E0517" stroke-width="1.4" stroke-linecap="round"/>
+
+              <!-- CAT — #F1B1DF line drawing, right side -->
+              <!-- body: simple oval -->
+              <ellipse cx="112" cy="89" rx="18" ry="14" stroke="#F1B1DF" stroke-width="1.4" stroke-linecap="round"/>
+              <!-- head: circle -->
+              <circle cx="112" cy="65" r="12" stroke="#F1B1DF" stroke-width="1.4"/>
+              <!-- pointy left ear -->
+              <path d="M103 58 L100 46 L110 55" stroke="#F1B1DF" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>
+              <!-- pointy right ear -->
+              <path d="M121 58 L124 46 L114 55" stroke="#F1B1DF" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>
+              <!-- eyes: closed happy arcs -->
+              <path d="M106 63 Q109 60 111 63" stroke="#F1B1DF" stroke-width="1.2" stroke-linecap="round"/>
+              <path d="M113 63 Q116 60 118 63" stroke="#F1B1DF" stroke-width="1.2" stroke-linecap="round"/>
+              <!-- nose: tiny triangle outline -->
+              <path d="M110 67 L112 69 L114 67 Z" stroke="#F1B1DF" stroke-width="1.2" stroke-linejoin="round"/>
+              <!-- whiskers -->
+              <line x1="98" y1="67" x2="108" y2="68" stroke="#F1B1DF" stroke-width="1" stroke-linecap="round"/>
+              <line x1="98" y1="70" x2="108" y2="70" stroke="#F1B1DF" stroke-width="1" stroke-linecap="round"/>
+              <line x1="116" y1="68" x2="126" y2="67" stroke="#F1B1DF" stroke-width="1" stroke-linecap="round"/>
+              <line x1="116" y1="70" x2="126" y2="70" stroke="#F1B1DF" stroke-width="1" stroke-linecap="round"/>
+              <!-- tail: elegant curl -->
+              <path d="M130 87 Q140 74 136 92 Q133 104 124 102" stroke="#F1B1DF" stroke-width="1.4" stroke-linecap="round"/>
+              <!-- 3 legs -->
+              <line x1="102" y1="102" x2="100" y2="116" stroke="#F1B1DF" stroke-width="1.4" stroke-linecap="round"/>
+              <line x1="110" y1="103" x2="108" y2="117" stroke="#F1B1DF" stroke-width="1.4" stroke-linecap="round"/>
+              <line x1="120" y1="103" x2="122" y2="117" stroke="#F1B1DF" stroke-width="1.4" stroke-linecap="round"/>
+
+              <!-- Small heart outline between them -->
+              <path d="M80 52 C80 49.5 77.5 47 75 49 C72.5 51 73.5 54.5 80 59 C86.5 54.5 87.5 51 85 49 C82.5 47 80 49.5 80 52 Z" stroke="#F1B1DF" stroke-width="1.2" stroke-linejoin="round"/>
+
+            </svg>
+
+            <!-- CASA wordmark in pink -->
+            <div style="font-size:26px; font-weight:900; color:#F1B1DF; letter-spacing:0.12em; margin-top:10px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">CASA</div>
+            <div style="font-size:9.5px; color:#1E0517; font-weight:500; letter-spacing:0.06em; margin-top:5px; opacity:0.5; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">家的温度，一起守护</div>
+
+            <!-- Loading dots -->
+            <div style="display:flex; gap:6px; margin-top:24px;">
+              <div style="width:5px;height:5px;border-radius:50%;background:#F1B1DF;opacity:1"></div>
+              <div style="width:5px;height:5px;border-radius:50%;background:#F1B1DF;opacity:0.4"></div>
+              <div style="width:5px;height:5px;border-radius:50%;background:#F1B1DF;opacity:0.15"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-caption">启动页</div>
+      <div class="screen-caption-sub">闪屏动画</div>
+
+    <div>
+      <div class="phone-shell">
+        <div class="phone-screen" style="display:flex;flex-direction:column;background:#FFFFFF;position:relative;overflow:hidden;">
+
+          <!-- Status bar -->
+          <div class="ph-status">
+            <span class="ph-time">9:41</span>
+            <div class="ph-icons">
+              <svg width="12" height="10" viewBox="0 0 12 10"><rect x="0" y="3" width="2" height="7" rx="0.5" fill="#1E0517"/><rect x="3.3" y="2" width="2" height="8" rx="0.5" fill="#1E0517"/><rect x="6.6" y="0.5" width="2" height="9.5" rx="0.5" fill="#1E0517"/><rect x="9.9" y="0" width="2" height="10" rx="0.5" fill="#1E0517" opacity="0.3"/></svg>
+              <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 3.5C2.7 1.8 7.3 1.8 9 3.5" stroke="#1E0517" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M2.5 5.2C3.6 4.1 6.4 4.1 7.5 5.2" stroke="#1E0517" stroke-width="1.4" fill="none" stroke-linecap="round"/><circle cx="5" cy="7" r="1" fill="#1E0517"/></svg>
+              <svg width="18" height="10" viewBox="0 0 18 10"><rect x="0" y="1" width="15" height="8" rx="2" stroke="#1E0517" stroke-width="1.3" fill="none"/><rect x="1.5" y="2.5" width="10" height="5" rx="1" fill="#1E0517"/><path d="M16 3.5v3c.8-.4.8-2.6 0-3z" fill="#1E0517" opacity="0.4"/></svg>
+            </div>
+          </div>
+
+          <!-- MAIN CONTENT: name + summary card + tasks -->
+          <div style="flex:1;padding:4px 14px 0;display:flex;flex-direction:column;gap:8px;">
+
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-size:15px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">张三</div>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <div style="width:20px;height:20px;border-radius:50%;background:#F4F4F4;display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V10.5z" stroke="#1E0517" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 22V12h6v10" stroke="#1E0517" stroke-width="1.8" stroke-linejoin="round"/></svg></div>
+                <div style="width:20px;height:20px;border-radius:50%;background:#1E0517;display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="9" height="9" viewBox="0 0 12 12"><line x1="6" y1="2" x2="6" y2="10" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="2" y1="6" x2="10" y2="6" stroke="white" stroke-width="2" stroke-linecap="round"/></svg></div>
+              </div>
+            </div>
+
+            <!-- Pink summary card -->
+            <div style="background:#F1B1DF;border-radius:16px;padding:11px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;">
+              <span style="font-size:20px;">🏠</span>
+              <div style="flex:1;">
+                <div style="font-size:9px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin-bottom:2px;">今日任务</div>
+                <div style="font-size:7.5px;color:#1E0517;opacity:0.65;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">还剩3项 · 已完成2项</div>
+              </div>
+              <div style="font-size:28px;font-weight:900;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;line-height:1;">5</div>
+            </div>
+
+            <!-- Task rows -->
+            <div style="display:flex;flex-direction:column;gap:7px;">
+              <div style="background:#F4F4F4;border-radius:14px;padding:11px 12px;display:flex;align-items:center;gap:9px;">
+                <span style="font-size:14px;">🧹</span>
+                <div style="font-size:9px;font-weight:600;flex:1;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">扫客厅</div>
+                <div style="font-size:8px;font-weight:600;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin-right:6px;">李四</div>
+                <div style="width:18px;height:18px;border-radius:6px;border:1.5px solid #DCDCDC;background:white;flex-shrink:0;"></div>
+              </div>
+              <div style="background:#F4F4F4;border-radius:14px;padding:11px 12px;display:flex;align-items:center;gap:9px;">
+                <span style="font-size:14px;">🍳</span>
+                <div style="font-size:9px;font-weight:600;flex:1;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">做早饭</div>
+                <div style="font-size:8px;font-weight:600;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin-right:6px;">王五</div>
+                <div style="width:18px;height:18px;border-radius:6px;border:1.5px solid #DCDCDC;background:white;flex-shrink:0;"></div>
+              </div>
+              <div style="background:#F4F4F4;border-radius:14px;padding:11px 12px;display:flex;align-items:center;gap:9px;opacity:0.45;">
+                <span style="font-size:14px;filter:grayscale(1);">🗑️</span>
+                <div style="font-size:9px;font-weight:600;flex:1;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;text-decoration:line-through;">倒垃圾</div>
+                <div style="font-size:8px;font-weight:700;color:#1E0517;background:#F1B1DF;padding:2px 7px;border-radius:100px;margin-right:4px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">马六</div>
+                <div style="width:18px;height:18px;border-radius:6px;background:#F1B1DF;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg width="10" height="10" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- DARK CALENDAR SHEET — peeks as a slim handle at the bottom -->
+          <!-- In real app: drag up to reveal full week/month calendar -->
+          <div style="background:#1E0517;border-radius:20px 20px 0 0;flex-shrink:0;padding:0 14px 0;">
+            <!-- Drag handle -->
+            <div style="display:flex;justify-content:center;padding:7px 0 5px;">
+              <div style="width:30px;height:3px;border-radius:100px;background:rgba(255,255,255,0.3);"></div>
+            </div>
+            <!-- Peek row: month label + today's date chip — visible before dragging up -->
+            <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="3" stroke="white" stroke-width="1.8" opacity="0.6"/><path d="M3 9h18" stroke="white" stroke-width="1.8" opacity="0.6"/><path d="M8 2v4M16 2v4" stroke="white" stroke-width="1.8" stroke-linecap="round" opacity="0.6"/></svg>
+                <div style="font-size:8.5px;font-weight:700;color:white;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">2025年3月</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:5px;">
+                <!-- Today chip -->
+                <div style="background:#F1B1DF;border-radius:100px;padding:3px 8px;display:flex;align-items:center;gap:3px;">
+                  <span style="font-size:7.5px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">11日 今天</span>
+                </div>
+                <svg width="10" height="10" viewBox="0 0 12 12"><path d="M4 2l4 4-4 4" stroke="white" stroke-width="1.3" stroke-linecap="round" fill="none" opacity="0.5"/></svg>
+              </div>
+            </div>
+            <!-- Hint: partial date strip fading out — shows calendar is "below" -->
+            <div style="display:flex;gap:2px;padding-bottom:4px;mask-image:linear-gradient(to bottom,white 0%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,rgba(255,255,255,0.6) 0%,transparent 100%);">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+                <div style="font-size:6px;color:white;opacity:0.3;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">一</div>
+                <div style="font-size:7.5px;color:white;opacity:0.3;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">8</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+                <div style="font-size:6px;color:white;opacity:0.3;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">二</div>
+                <div style="font-size:7.5px;color:white;opacity:0.3;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">9</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+                <div style="font-size:6px;color:white;opacity:0.3;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">三</div>
+                <div style="font-size:7.5px;color:white;opacity:0.3;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">10</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+                <div style="font-size:6px;color:#F1B1DF;font-weight:700;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">四</div>
+                <div style="width:20px;height:20px;border-radius:50%;background:#F1B1DF;display:flex;align-items:center;justify-content:center;">
+                  <span style="font-size:7.5px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">11</span>
+                </div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+                <div style="font-size:6px;color:white;opacity:0.4;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">五</div>
+                <div style="font-size:7.5px;color:white;opacity:0.4;font-family:-apple-system,BlinkMacSystemFont,sans-serif;text-align:center;">12<div style="width:3px;height:3px;border-radius:50%;background:#F1B1DF;margin:1px auto 0;"></div></div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+                <div style="font-size:6px;color:white;opacity:0.4;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">六</div>
+                <div style="font-size:7.5px;color:white;opacity:0.4;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">13</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+                <div style="font-size:6px;color:white;opacity:0.4;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">日</div>
+                <div style="font-size:7.5px;color:white;opacity:0.4;font-family:-apple-system,BlinkMacSystemFont,sans-serif;text-align:center;">14<div style="width:3px;height:3px;border-radius:50%;background:#F1B1DF;margin:1px auto 0;"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom nav — white -->
+          <div class="ph-nav" style="background:#FFFFFF;border-top:1px solid #EBEBEB;">
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-list"/></svg>
+              <span class="ph-nav-label">清单</span>
+            </div>
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 2 A10 10 0 0 1 22 12 L12 12 Z" fill="#1E0517" opacity="0.4"/><path d="M12 12 L22 12 A10 10 0 1 1 12 2 Z" fill="#1E0517"/></svg>
+              <span class="ph-nav-label">报表</span>
+            </div>
+            <div class="ph-nav-item active">
+              <div class="ph-nav-casa">
+                <span style="font-size:6.5px;font-weight:900;color:#1E0517;letter-spacing:0.03em;">CASA</span>
+              </div>
+            </div>
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-reward"/></svg>
+              <span class="ph-nav-label">奖励</span>
+            </div>
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-profile"/></svg>
+              <span class="ph-nav-label">我的</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div class="screen-caption">CASA</div>
+      <div class="screen-caption-sub">首页</div>
+
+    <div>
+      <div class="phone-shell">
+        <div class="phone-screen" style="display:flex;flex-direction:column;background:#FFFFFF;position:relative;overflow:hidden;">
+          <!-- Status bar -->
+          <div class="ph-status">
+            <span class="ph-time">9:41</span>
+            <div class="ph-icons">
+              <svg width="12" height="10" viewBox="0 0 12 10"><rect x="0" y="3" width="2" height="7" rx="0.5" fill="#1E0517"/><rect x="3.3" y="2" width="2" height="8" rx="0.5" fill="#1E0517"/><rect x="6.6" y="0.5" width="2" height="9.5" rx="0.5" fill="#1E0517"/><rect x="9.9" y="0" width="2" height="10" rx="0.5" fill="#1E0517" opacity="0.3"/></svg>
+              <svg width="18" height="10" viewBox="0 0 18 10"><rect x="0" y="1" width="15" height="8" rx="2" stroke="#1E0517" stroke-width="1.3" fill="none"/><rect x="1.5" y="2.5" width="10" height="5" rx="1" fill="#1E0517"/><path d="M16 3.5v3c.8-.4.8-2.6 0-3z" fill="#1E0517" opacity="0.4"/></svg>
+            </div>
+          </div>
+          <!-- Dimmed background content -->
+          <div style="flex:1;padding:4px 14px 0;display:flex;flex-direction:column;gap:8px;filter:blur(1px);opacity:0.35;pointer-events:none;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-size:15px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">张三</div>
+              <div style="width:26px;height:26px;border-radius:50%;background:#1E0517;display:flex;align-items:center;justify-content:center;">
+                <svg width="9" height="9" viewBox="0 0 12 12"><line x1="6" y1="2" x2="6" y2="10" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="2" y1="6" x2="10" y2="6" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+              </div>
+            </div>
+            <div style="background:#F1B1DF;border-radius:16px;padding:11px 14px;display:flex;align-items:center;gap:10px;">
+              <span style="font-size:20px;">🏠</span>
+              <div style="flex:1;"><div style="font-size:9px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">今日任务</div><div style="font-size:7.5px;color:#1E0517;opacity:0.65;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">还剩3项 · 已完成2项</div></div>
+              <div style="font-size:28px;font-weight:900;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">5</div>
+            </div>
+          </div>
+          <!-- Dark overlay scrim -->
+          <div style="position:absolute;inset:0;background:rgba(30,5,23,0.5);"></div>
+          <!-- Bottom sheet popup -->
+          <div style="position:absolute;bottom:0;left:0;right:0;background:white;border-radius:20px 20px 0 0;padding:0 16px 20px;z-index:10;">
+            <!-- Handle -->
+            <div style="display:flex;justify-content:center;padding:10px 0 6px;">
+              <div style="width:30px;height:3px;border-radius:100px;background:#E0E0E0;"></div>
+            </div>
+            <!-- Title row -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+              <div style="font-size:11px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">添加家务任务</div>
+              <div style="width:22px;height:22px;border-radius:50%;background:#F4F4F4;display:flex;align-items:center;justify-content:center;">
+                <svg width="9" height="9" viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9" stroke="#1E0517" stroke-width="1.5" stroke-linecap="round"/><line x1="9" y1="1" x2="1" y2="9" stroke="#1E0517" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </div>
+            </div>
+            <!-- Task name input — active with typed text -->
+            <div style="margin-bottom:10px;">
+              <div style="font-size:7px;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin-bottom:4px;font-weight:600;">任务名称</div>
+              <div style="background:#F4F4F4;border-radius:10px;padding:9px 11px;display:flex;align-items:center;gap:6px;border:1.5px solid #F1B1DF;">
+                <span style="font-size:11px;">🧹</span>
+                <span style="font-size:8.5px;font-weight:600;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;flex:1;">拖地板</span>
+                <div style="width:1.5px;height:13px;background:#F1B1DF;border-radius:1px;animation:blink 1s infinite;"></div>
+              </div>
+            </div>
+            <!-- Assign + Date row -->
+            <div style="display:flex;gap:8px;margin-bottom:10px;">
+              <div style="flex:1;">
+                <div style="font-size:7px;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin-bottom:4px;font-weight:600;">负责人</div>
+                <div style="background:#F4F4F4;border-radius:10px;padding:9px 11px;display:flex;align-items:center;gap:5px;">
+                  <div style="width:14px;height:14px;border-radius:50%;background:#F1B1DF;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">李</div>
+                  <span style="font-size:8px;font-weight:600;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">李四</span>
+                  <svg width="8" height="8" viewBox="0 0 10 10" style="margin-left:auto;"><path d="M2 3.5l3 3 3-3" stroke="#7A5A74" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>
+                </div>
+              </div>
+              <div style="flex:1;">
+                <div style="font-size:7px;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin-bottom:4px;font-weight:600;">日期</div>
+                <div style="background:#F4F4F4;border-radius:10px;padding:9px 11px;display:flex;align-items:center;gap:5px;">
+                  <svg width="9" height="9" viewBox="0 0 12 12"><rect x="1" y="2" width="10" height="9" rx="2" stroke="#7A5A74" stroke-width="1.2" fill="none"/><path d="M1 5h10" stroke="#7A5A74" stroke-width="1.2"/><path d="M4 1v2M8 1v2" stroke="#7A5A74" stroke-width="1.2" stroke-linecap="round"/></svg>
+                  <span style="font-size:8px;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-weight:600;">3月11日</span>
+                </div>
+              </div>
+            </div>
+            <!-- Emoji row -->
+            <div style="margin-bottom:14px;">
+              <div style="font-size:7px;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin-bottom:6px;font-weight:600;">选择图标</div>
+              <div style="display:flex;gap:7px;">
+                <div style="width:28px;height:28px;border-radius:8px;background:#F1B1DF;display:flex;align-items:center;justify-content:center;font-size:13px;">🧹</div>
+                <div style="width:28px;height:28px;border-radius:8px;background:#F4F4F4;display:flex;align-items:center;justify-content:center;font-size:13px;">🍳</div>
+                <div style="width:28px;height:28px;border-radius:8px;background:#F4F4F4;display:flex;align-items:center;justify-content:center;font-size:13px;">🗑️</div>
+                <div style="width:28px;height:28px;border-radius:8px;background:#F4F4F4;display:flex;align-items:center;justify-content:center;font-size:13px;">🛁</div>
+                <div style="width:28px;height:28px;border-radius:8px;background:#F4F4F4;display:flex;align-items:center;justify-content:center;font-size:13px;">🪴</div>
+              </div>
+            </div>
+            <!-- Confirm button -->
+            <div style="background:#1E0517;border-radius:12px;padding:11px;text-align:center;">
+              <span style="font-size:9px;font-weight:800;color:white;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.03em;">添加任务</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-caption">CASA</div>
+      <div class="screen-caption-sub">添加家务弹窗</div>
+
+    <div>
+      <div class="phone-shell">
+        <div class="phone-screen" style="display:flex;flex-direction:column;background:#FFFFFF;">
+          <div class="ph-status">
+            <span class="ph-time">9:41</span>
+            <div class="ph-icons">
+              <svg width="12" height="10" viewBox="0 0 12 10"><rect x="0" y="3" width="2" height="7" rx="0.5" fill="#1E0517"/><rect x="3.3" y="2" width="2" height="8" rx="0.5" fill="#1E0517"/><rect x="6.6" y="0.5" width="2" height="9.5" rx="0.5" fill="#1E0517"/><rect x="9.9" y="0" width="2" height="10" rx="0.5" fill="#1E0517" opacity="0.3"/></svg>
+              <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 3.5C2.7 1.8 7.3 1.8 9 3.5" stroke="#1E0517" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M2.5 5.2C3.6 4.1 6.4 4.1 7.5 5.2" stroke="#1E0517" stroke-width="1.4" fill="none" stroke-linecap="round"/><circle cx="5" cy="7" r="1" fill="#1E0517"/></svg>
+              <svg width="18" height="10" viewBox="0 0 18 10"><rect x="0" y="1" width="15" height="8" rx="2" stroke="#1E0517" stroke-width="1.3" fill="none"/><rect x="1.5" y="2.5" width="10" height="5" rx="1" fill="#1E0517"/><path d="M16 3.5v3c.8-.4.8-2.6 0-3z" fill="#1E0517" opacity="0.4"/></svg>
+            </div>
+          </div>
+          <div style="flex:1;padding:4px 14px 0;display:flex;flex-direction:column;gap:8px;overflow:hidden;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:20px;height:20px;border-radius:50%;background:#F4F4F4;display:flex;align-items:center;justify-content:center;">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V10.5z" stroke="#1E0517" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 22V12h6v10" stroke="#1E0517" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div style="font-size:13px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;flex:1;">全家任务</div>
+              <div style="font-size:7px;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">3月11日</div>
+            </div>
+            <div style="display:flex;gap:5px;flex-shrink:0;">
+              <div style="background:#1E0517;border-radius:100px;padding:3px 9px;"><span style="font-size:7px;font-weight:700;color:white;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">全部</span></div>
+              <div style="background:#F4F4F4;border-radius:100px;padding:3px 9px;"><span style="font-size:7px;font-weight:600;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">张三</span></div>
+              <div style="background:#F4F4F4;border-radius:100px;padding:3px 9px;"><span style="font-size:7px;font-weight:600;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">李四</span></div>
+              <div style="background:#F4F4F4;border-radius:100px;padding:3px 9px;"><span style="font-size:7px;font-weight:600;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">王五</span></div>
+              <div style="background:#F4F4F4;border-radius:100px;padding:3px 9px;"><span style="font-size:7px;font-weight:600;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">马六</span></div>
+            </div>
+            <div style="font-size:7px;font-weight:700;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;opacity:0.4;letter-spacing:0.05em;">未完成 · 3项</div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              <div style="background:#F4F4F4;border-radius:12px;padding:9px 11px;display:flex;align-items:center;gap:8px;"><span style="font-size:12px;">🧹</span><div style="flex:1;"><div style="font-size:8.5px;font-weight:600;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">扫客厅</div></div><div style="background:#F4F4F4;border:1px solid #E8E8E8;border-radius:100px;padding:2px 7px;"><span style="font-size:6.5px;font-weight:700;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">李四</span></div><div style="width:15px;height:15px;border-radius:5px;border:1.5px solid #DCDCDC;background:white;flex-shrink:0;"></div></div>
+              <div style="background:#F4F4F4;border-radius:12px;padding:9px 11px;display:flex;align-items:center;gap:8px;"><span style="font-size:12px;">🍳</span><div style="flex:1;"><div style="font-size:8.5px;font-weight:600;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">做早饭</div></div><div style="background:#F4F4F4;border:1px solid #E8E8E8;border-radius:100px;padding:2px 7px;"><span style="font-size:6.5px;font-weight:700;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">王五</span></div><div style="width:15px;height:15px;border-radius:5px;border:1.5px solid #DCDCDC;background:white;flex-shrink:0;"></div></div>
+              <div style="background:#F4F4F4;border-radius:12px;padding:9px 11px;display:flex;align-items:center;gap:8px;"><span style="font-size:12px;">🛁</span><div style="flex:1;"><div style="font-size:8.5px;font-weight:600;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">清洁浴室</div></div><div style="background:#F4F4F4;border:1px solid #E8E8E8;border-radius:100px;padding:2px 7px;"><span style="font-size:6.5px;font-weight:700;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">张三</span></div><div style="width:15px;height:15px;border-radius:5px;border:1.5px solid #DCDCDC;background:white;flex-shrink:0;"></div></div>
+            </div>
+            <div style="font-size:7px;font-weight:700;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;opacity:0.4;letter-spacing:0.05em;">已完成 · 2项</div>
+            <div style="display:flex;flex-direction:column;gap:5px;opacity:0.45;">
+              <div style="background:#F4F4F4;border-radius:12px;padding:9px 11px;display:flex;align-items:center;gap:8px;"><span style="font-size:12px;filter:grayscale(1);">🗑️</span><div style="flex:1;"><div style="font-size:8.5px;font-weight:600;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;text-decoration:line-through;">倒垃圾</div></div><div style="background:#F1B1DF;border-radius:100px;padding:2px 7px;"><span style="font-size:6.5px;font-weight:700;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">马六</span></div><div style="width:15px;height:15px;border-radius:5px;background:#F1B1DF;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="8" height="8" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+              <div style="background:#F4F4F4;border-radius:12px;padding:9px 11px;display:flex;align-items:center;gap:8px;"><span style="font-size:12px;filter:grayscale(1);">🪴</span><div style="flex:1;"><div style="font-size:8.5px;font-weight:600;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;text-decoration:line-through;">浇花</div></div><div style="background:#F1B1DF;border-radius:100px;padding:2px 7px;"><span style="font-size:6.5px;font-weight:700;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">张三</span></div><div style="width:15px;height:15px;border-radius:5px;background:#F1B1DF;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="8" height="8" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+            </div>
+          </div>
+          <div class="ph-nav">
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-list"/></svg>
+              <span class="ph-nav-label">清单</span>
+            </div>
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="#1E0517" stroke-width="1.6"/><path d="M12 12 L12 4 A8 8 0 0 1 19.5 16 Z" fill="#F1B1DF"/><path d="M12 12 L19.5 16 A8 8 0 0 1 4.5 16 Z" fill="#1E0517"/></svg>
+              <span class="ph-nav-label">报表</span>
+            </div>
+            <div class="ph-nav-item  active">
+              <div style="width:32px;height:32px;background:#F1B1DF;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                <span style="font-size:6.5px;font-weight:900;color:#1E0517;letter-spacing:0.03em;">CASA</span>
+              </div>
+            </div>
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-reward"/></svg>
+              <span class="ph-nav-label">奖励</span>
+            </div>
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-profile"/></svg>
+              <span class="ph-nav-label">我的</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-caption">CASA</div>
+      <div class="screen-caption-sub">全家任务总览</div>
+
+    <div>
+      <div class="phone-shell">
+        <div class="phone-screen" style="display:flex;flex-direction:column;background:#FFFFFF;">
+                    <div class="ph-status">
+            <span class="ph-time">9:41</span>
+            <div class="ph-icons">
+              <svg width="12" height="10" viewBox="0 0 12 10"><rect x="0" y="3" width="2" height="7" rx="0.5" fill="#1E0517"/><rect x="3.3" y="2" width="2" height="8" rx="0.5" fill="#1E0517"/><rect x="6.6" y="0.5" width="2" height="9.5" rx="0.5" fill="#1E0517"/><rect x="9.9" y="0" width="2" height="10" rx="0.5" fill="#1E0517" opacity="0.3"/></svg>
+              <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 3.5C2.7 1.8 7.3 1.8 9 3.5" stroke="#1E0517" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M2.5 5.2C3.6 4.1 6.4 4.1 7.5 5.2" stroke="#1E0517" stroke-width="1.4" fill="none" stroke-linecap="round"/><circle cx="5" cy="7" r="1" fill="#1E0517"/></svg>
+              <svg width="18" height="10" viewBox="0 0 18 10"><rect x="0" y="1" width="15" height="8" rx="2" stroke="#1E0517" stroke-width="1.3" fill="none"/><rect x="1.5" y="2.5" width="10" height="5" rx="1" fill="#1E0517"/><path d="M16 3.5v3c.8-.4.8-2.6 0-3z" fill="#1E0517" opacity="0.4"/></svg>
+            </div>
+          </div>
+          <div style="flex:1;padding:4px 14px 0;display:flex;flex-direction:column;gap:9px;">
+            <!-- Header -->
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-size:13px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">我的清单</div>
+              <div style="width:20px;height:20px;border-radius:50%;background:#1E0517;display:flex;align-items:center;justify-content:center;cursor:pointer;"><svg width="9" height="9" viewBox="0 0 12 12"><line x1="6" y1="2" x2="6" y2="10" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="2" y1="6" x2="10" y2="6" stroke="white" stroke-width="2" stroke-linecap="round"/></svg></div>
+            </div>
+            <!-- Summary pill -->
+            <div style="background:#F1B1DF;border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:10px;">
+              <span style="font-size:18px;">📋</span>
+              <div style="flex:1;"><div style="font-size:9px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">共3个清单</div><div style="font-size:7px;color:#1E0517;opacity:0.65;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">12项待处理</div></div>
+            </div>
+            <!-- List cards -->
+            <div style="display:flex;flex-direction:column;gap:7px;">
+              <!-- 购物清单 -->
+              <div style="background:#F4F4F4;border-radius:14px;padding:12px 13px;display:flex;align-items:center;gap:10px;cursor:pointer;">
+                <div style="width:32px;height:32px;border-radius:10px;background:#1E0517;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🛒</div>
+                <div style="flex:1;">
+                  <div style="font-size:9px;font-weight:700;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin-bottom:2px;">购物清单</div>
+                  <div style="font-size:7px;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">4件待购 · 李四添加了鸡蛋</div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">
+                  <div style="background:#F1B1DF;border-radius:100px;width:16px;height:16px;display:flex;align-items:center;justify-content:center;"><span style="font-size:7px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">4</span></div>
+                  <svg width="8" height="8" viewBox="0 0 10 10"><path d="M3 2l4 3-4 3" stroke="#C4A8C0" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg>
+                </div>
+              </div>
+              <!-- 家务清单 -->
+              <div style="background:#F4F4F4;border-radius:14px;padding:12px 13px;display:flex;align-items:center;gap:10px;cursor:pointer;">
+                <div style="width:32px;height:32px;border-radius:10px;background:#F1B1DF;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🧹</div>
+                <div style="flex:1;">
+                  <div style="font-size:9px;font-weight:700;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin-bottom:2px;">家务清单</div>
+                  <div style="font-size:7px;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">5项待完成 · 今日3项</div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">
+                  <div style="background:#1E0517;border-radius:100px;width:16px;height:16px;display:flex;align-items:center;justify-content:center;"><span style="font-size:7px;font-weight:800;color:white;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">5</span></div>
+                  <svg width="8" height="8" viewBox="0 0 10 10"><path d="M3 2l4 3-4 3" stroke="#C4A8C0" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg>
+                </div>
+              </div>
+              <!-- 待办清单 -->
+              <div style="background:#F4F4F4;border-radius:14px;padding:12px 13px;display:flex;align-items:center;gap:10px;cursor:pointer;">
+                <div style="width:32px;height:32px;border-radius:10px;background:#E8E8E8;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📌</div>
+                <div style="flex:1;">
+                  <div style="font-size:9px;font-weight:700;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin-bottom:2px;">待办清单</div>
+                  <div style="font-size:7px;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">3项 · 水电缴费、换灯泡…</div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">
+                  <div style="background:#E8E8E8;border-radius:100px;width:16px;height:16px;display:flex;align-items:center;justify-content:center;"><span style="font-size:7px;font-weight:800;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">3</span></div>
+                  <svg width="8" height="8" viewBox="0 0 10 10"><path d="M3 2l4 3-4 3" stroke="#C4A8C0" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+                    <div class="ph-nav" style="background:#FFFFFF;border-top:1px solid #EBEBEB;">
+            <div class="ph-nav-item active">
+              <svg width="16" height="16" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="3" fill="#1E0517"/><line x1="9" y1="9" x2="15" y2="9" stroke="white" stroke-width="1.6" stroke-linecap="round"/><line x1="9" y1="12.5" x2="15" y2="12.5" stroke="white" stroke-width="1.6" stroke-linecap="round"/><line x1="9" y1="16" x2="12" y2="16" stroke="white" stroke-width="1.6" stroke-linecap="round"/></svg>
+              <span class="ph-nav-label"style="color:#1E0517">清单</span>
+            </div>
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 2 A10 10 0 0 1 22 12 L12 12 Z" fill="#1E0517" opacity="0.35"/><path d="M12 12 L22 12 A10 10 0 1 1 12 2 Z" fill="#1E0517"/></svg>
+              <span class="ph-nav-label">报表</span>
+            </div>
+            <div class="ph-nav-item">
+              <div style="width:32px;height:32px;background:#E8E8E8;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-top:0;">
+                <span style="font-size:6.5px;font-weight:900;color:#1E0517;letter-spacing:0.03em;">CASA</span>
+              </div>
+            </div>
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-reward"/></svg>
+              <span class="ph-nav-label">奖励</span>
+            </div>
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-profile"/></svg>
+              <span class="ph-nav-label">我的</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-caption">清单</div>
+      <div class="screen-caption-sub">清单总览</div>
+
+    <div>
+      <div class="phone-shell">
+        <div class="phone-screen" style="display:flex;flex-direction:column;background:#FFFFFF;position:relative;overflow:hidden;">
+                    <div class="ph-status">
+            <span class="ph-time">9:41</span>
+            <div class="ph-icons">
+              <svg width="12" height="10" viewBox="0 0 12 10"><rect x="0" y="3" width="2" height="7" rx="0.5" fill="#1E0517"/><rect x="3.3" y="2" width="2" height="8" rx="0.5" fill="#1E0517"/><rect x="6.6" y="0.5" width="2" height="9.5" rx="0.5" fill="#1E0517"/><rect x="9.9" y="0" width="2" height="10" rx="0.5" fill="#1E0517" opacity="0.3"/></svg>
+              <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 3.5C2.7 1.8 7.3 1.8 9 3.5" stroke="#1E0517" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M2.5 5.2C3.6 4.1 6.4 4.1 7.5 5.2" stroke="#1E0517" stroke-width="1.4" fill="none" stroke-linecap="round"/><circle cx="5" cy="7" r="1" fill="#1E0517"/></svg>
+              <svg width="18" height="10" viewBox="0 0 18 10"><rect x="0" y="1" width="15" height="8" rx="2" stroke="#1E0517" stroke-width="1.3" fill="none"/><rect x="1.5" y="2.5" width="10" height="5" rx="1" fill="#1E0517"/><path d="M16 3.5v3c.8-.4.8-2.6 0-3z" fill="#1E0517" opacity="0.4"/></svg>
+            </div>
+          </div>
+          <!-- Dimmed bg -->
+          <div style="flex:1;padding:4px 14px 0;display:flex;flex-direction:column;gap:9px;filter:blur(1px);opacity:0.3;pointer-events:none;">
+            <div style="font-size:13px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">我的清单</div>
+            <div style="background:#F1B1DF;border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">📋</span><div style="font-size:9px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">共3个清单</div></div>
+            <div style="background:#F4F4F4;border-radius:14px;padding:12px 13px;display:flex;align-items:center;gap:10px;"><div style="width:32px;height:32px;border-radius:10px;background:#1E0517;display:flex;align-items:center;justify-content:center;font-size:16px;">🛒</div><div style="font-size:9px;font-weight:700;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">购物清单</div></div>
+          </div>
+          <!-- Scrim -->
+          <div style="position:absolute;inset:0;background:rgba(30,5,23,0.5);"></div>
+          <!-- Popup sheet -->
+          <div style="position:absolute;bottom:0;left:0;right:0;background:white;border-radius:20px 20px 0 0;padding:0 16px 20px;z-index:10;">
+            <div style="display:flex;justify-content:center;padding:10px 0 6px;"><div style="width:30px;height:3px;border-radius:100px;background:#E0E0E0;"></div></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+              <div style="font-size:11px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">创建清单</div>
+              <div style="width:22px;height:22px;border-radius:50%;background:#F4F4F4;display:flex;align-items:center;justify-content:center;"><svg width="9" height="9" viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9" stroke="#1E0517" stroke-width="1.5" stroke-linecap="round"/><line x1="9" y1="1" x2="1" y2="9" stroke="#1E0517" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+            </div>
+            <!-- Name input -->
+            <div style="margin-bottom:10px;">
+              <div style="font-size:7px;color:#7A5A74;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin-bottom:4px;">清单名称</div>
+              <div style="background:#F4F4F4;border-radius:10px;padding:9px 11px;display:flex;align-items:center;gap:6px;border:1.5px solid #F1B1DF;">
+                <span style="font-size:8.5px;font-weight:600;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;flex:1;">装修材料清单</span>
+                <div style="width:1.5px;height:13px;background:#F1B1DF;border-radius:1px;"></div>
+              </div>
+            </div>
+            <!-- Icon picker -->
+            <div style="margin-bottom:10px;">
+              <div style="font-size:7px;color:#7A5A74;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin-bottom:6px;">选择图标</div>
+              <div style="display:flex;gap:6px;">
+                <div style="width:30px;height:30px;border-radius:9px;background:#F4F4F4;display:flex;align-items:center;justify-content:center;font-size:15px;">🛒</div>
+                <div style="width:30px;height:30px;border-radius:9px;background:#F4F4F4;display:flex;align-items:center;justify-content:center;font-size:15px;">🧹</div>
+                <div style="width:30px;height:30px;border-radius:9px;background:#F1B1DF;display:flex;align-items:center;justify-content:center;font-size:15px;">🔨</div>
+                <div style="width:30px;height:30px;border-radius:9px;background:#F4F4F4;display:flex;align-items:center;justify-content:center;font-size:15px;">📌</div>
+                <div style="width:30px;height:30px;border-radius:9px;background:#F4F4F4;display:flex;align-items:center;justify-content:center;font-size:15px;">📦</div>
+              </div>
+            </div>
+            <!-- Color picker -->
+            <div style="margin-bottom:14px;">
+              <div style="font-size:7px;color:#7A5A74;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin-bottom:6px;">清单颜色</div>
+              <div style="display:flex;gap:7px;">
+                <div style="width:20px;height:20px;border-radius:50%;background:#F1B1DF;border:2px solid #1E0517;"></div>
+                <div style="width:20px;height:20px;border-radius:50%;background:#1E0517;"></div>
+                <div style="width:20px;height:20px;border-radius:50%;background:#A8D5BA;"></div>
+                <div style="width:20px;height:20px;border-radius:50%;background:#F9C784;"></div>
+                <div style="width:20px;height:20px;border-radius:50%;background:#B5C8E8;"></div>
+              </div>
+            </div>
+            <!-- Confirm -->
+            <div style="background:#1E0517;border-radius:12px;padding:11px;text-align:center;">
+              <span style="font-size:9px;font-weight:800;color:white;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.03em;">创建清单</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-caption">清单</div>
+      <div class="screen-caption-sub">创建清单弹窗</div>
+
+    <div>
+      <div class="phone-shell">
+        <div class="phone-screen">
+          <div class="ph-status">
+            <span class="ph-time">9:41</span>
+            <div class="ph-icons">
+              <svg width="12" height="10" viewBox="0 0 12 10"><rect x="0" y="3" width="2" height="7" rx="0.5" fill="#1E0517"/><rect x="3.3" y="2" width="2" height="8" rx="0.5" fill="#1E0517"/><rect x="6.6" y="0.5" width="2" height="9.5" rx="0.5" fill="#1E0517"/><rect x="9.9" y="0" width="2" height="10" rx="0.5" fill="#1E0517" opacity="0.3"/></svg>
+              <svg width="18" height="10" viewBox="0 0 18 10"><rect x="0" y="1" width="15" height="8" rx="2" stroke="#1E0517" stroke-width="1.3" fill="none"/><rect x="1.5" y="2.5" width="10" height="5" rx="1" fill="#1E0517"/><path d="M16 3.5v3c.8-.4.8-2.6 0-3z" fill="#1E0517" opacity="0.4"/></svg>
+            </div>
+          </div>
+          <div class="ph-content">
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="font-size:11px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">购物清单</div>
+                <div style="width:20px;height:20px;border-radius:50%;background:#1E0517;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+                  <svg width="9" height="9" viewBox="0 0 12 12"><line x1="6" y1="2" x2="6" y2="10" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="2" y1="6" x2="10" y2="6" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+                </div>
+              </div>
+            </div>
+            <!-- Hero card -->
+            <div class="ph-card" style="background:#F1B1DF">
+              <div style="font-size:15px">🛍️</div>
+              <div>
+                <div class="ph-card-label">待买</div>
+                <div class="ph-card-sub">4件商品 · 3人添加</div>
+              </div>
+              <div class="ph-card-num">4</div>
+            </div>
+            <!-- List items -->
+            <div class="ph-row" style="opacity:0.4">
+              <span style="font-size:10px">🥦</span>
+              <div class="ph-row-label" style="text-decoration:line-through">西兰花</div>
+              <div class="ph-check done">✓</div>
+            </div>
+            <div class="ph-row">
+              <span style="font-size:10px">🥚</span>
+              <div class="ph-row-label">鸡蛋 × 12</div>
+              <div class="ph-tag" style="background:#F1B1DF; color:#1E0517">待买</div>
+            </div>
+            <div class="ph-row">
+              <span style="font-size:10px">🧴</span>
+              <div class="ph-row-label">洗洁精</div>
+              <div class="ph-tag" style="background:#F1B1DF; color:#1E0517">待买</div>
+            </div>
+            <div class="ph-row">
+              <span style="font-size:10px">🍎</span>
+              <div class="ph-row-label">苹果 × 6</div>
+              <div class="ph-tag" style="background:#F1B1DF; color:#1E0517">待买</div>
+            </div>
+
+          </div>
+          <!-- Bottom Nav -->
+          <div class="ph-nav">
+            <div class="ph-nav-item active">
+              <svg width="16" height="16" viewBox="0 0 24 24">
+                <rect x="5" y="4" width="14" height="16" rx="3" fill="#1E0517"/>
+                <line x1="9" y1="9" x2="15" y2="9" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+                <line x1="9" y1="12.5" x2="15" y2="12.5" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+                <line x1="9" y1="16" x2="12" y2="16" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+              <span class="ph-nav-label" style="color:#1E0517">清单</span>
+            </div>
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 2 A10 10 0 0 1 22 12 L12 12 Z" fill="#1E0517" opacity="0.4"/><path d="M12 12 L22 12 A10 10 0 1 1 12 2 Z" fill="#1E0517"/></svg>
+              <span class="ph-nav-label">报表</span>
+            </div>
+            <div class="ph-nav-item">
+              <div style="width:32px;height:32px;background:#E8E8E8;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-top:0;">
+                <span style="font-size:6.5px;font-weight:900;color:#1E0517;letter-spacing:0.03em;">CASA</span>
+              </div>
+            </div>
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-reward"/></svg>
+              <span class="ph-nav-label">奖励</span>
+            </div>
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-profile"/></svg>
+              <span class="ph-nav-label">我的</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-caption">清单</div>
+      <div class="screen-caption-sub">购物清单</div>
+
+    <div>
+      <div class="phone-shell">
+        <div class="phone-screen" style="display:flex;flex-direction:column;background:#FFFFFF;position:relative;overflow:hidden;">
+          <div class="ph-status">
+            <span class="ph-time">9:41</span>
+            <div class="ph-icons">
+              <svg width="12" height="10" viewBox="0 0 12 10"><rect x="0" y="3" width="2" height="7" rx="0.5" fill="#1E0517"/><rect x="3.3" y="2" width="2" height="8" rx="0.5" fill="#1E0517"/><rect x="6.6" y="0.5" width="2" height="9.5" rx="0.5" fill="#1E0517"/><rect x="9.9" y="0" width="2" height="10" rx="0.5" fill="#1E0517" opacity="0.3"/></svg>
+              <svg width="18" height="10" viewBox="0 0 18 10"><rect x="0" y="1" width="15" height="8" rx="2" stroke="#1E0517" stroke-width="1.3" fill="none"/><rect x="1.5" y="2.5" width="10" height="5" rx="1" fill="#1E0517"/><path d="M16 3.5v3c.8-.4.8-2.6 0-3z" fill="#1E0517" opacity="0.4"/></svg>
+            </div>
+          </div>
+          <!-- Dimmed bg -->
+          <div style="flex:1;padding:4px 14px 0;display:flex;flex-direction:column;gap:8px;filter:blur(1px);opacity:0.3;pointer-events:none;">
+            <div style="font-size:11px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">购物清单</div>
+            <div style="background:#F1B1DF;border-radius:16px;padding:11px 14px;display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">🛍️</span><div style="flex:1;"><div style="font-size:9px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">待买</div><div style="font-size:7.5px;color:#1E0517;opacity:0.65;">4件商品</div></div><div style="font-size:28px;font-weight:900;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">4</div></div>
+            <div style="background:#F4F4F4;border-radius:12px;padding:9px 11px;display:flex;align-items:center;gap:7px;"><span style="font-size:12px;">🥚</span><div style="font-size:8px;flex:1;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">鸡蛋 × 12</div></div>
+            <div style="background:#F4F4F4;border-radius:12px;padding:9px 11px;display:flex;align-items:center;gap:7px;"><span style="font-size:12px;">🧴</span><div style="font-size:8px;flex:1;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">洗洁精</div></div>
+          </div>
+          <!-- Scrim -->
+          <div style="position:absolute;inset:0;background:rgba(30,5,23,0.5);"></div>
+          <!-- Popup sheet -->
+          <div style="position:absolute;bottom:0;left:0;right:0;background:white;border-radius:20px 20px 0 0;padding:0 16px 20px;z-index:10;">
+            <div style="display:flex;justify-content:center;padding:10px 0 6px;">
+              <div style="width:30px;height:3px;border-radius:100px;background:#E0E0E0;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+              <div style="font-size:11px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">添加购物项目</div>
+              <div style="width:22px;height:22px;border-radius:50%;background:#F4F4F4;display:flex;align-items:center;justify-content:center;">
+                <svg width="9" height="9" viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9" stroke="#1E0517" stroke-width="1.5" stroke-linecap="round"/><line x1="9" y1="1" x2="1" y2="9" stroke="#1E0517" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </div>
+            </div>
+            <!-- Item name -->
+            <div style="margin-bottom:10px;">
+              <div style="font-size:7px;color:#7A5A74;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin-bottom:4px;">商品名称</div>
+              <div style="background:#F4F4F4;border-radius:10px;padding:9px 11px;display:flex;align-items:center;gap:6px;border:1.5px solid #F1B1DF;">
+                <span style="font-size:11px;">🥛</span>
+                <span style="font-size:8.5px;font-weight:600;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;flex:1;">牛奶</span>
+                <div style="width:1.5px;height:13px;background:#F1B1DF;border-radius:1px;"></div>
+              </div>
+            </div>
+            <!-- Qty + Category -->
+            <div style="display:flex;gap:8px;margin-bottom:10px;">
+              <div style="flex:1;">
+                <div style="font-size:7px;color:#7A5A74;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin-bottom:4px;">数量</div>
+                <div style="background:#F4F4F4;border-radius:10px;padding:9px 11px;display:flex;align-items:center;justify-content:space-between;">
+                  <div style="width:16px;height:16px;border-radius:50%;background:#1E0517;display:flex;align-items:center;justify-content:center;"><svg width="7" height="7" viewBox="0 0 10 10"><line x1="2" y1="5" x2="8" y2="5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+                  <span style="font-size:9px;font-weight:700;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">2</span>
+                  <div style="width:16px;height:16px;border-radius:50%;background:#1E0517;display:flex;align-items:center;justify-content:center;"><svg width="7" height="7" viewBox="0 0 10 10"><line x1="5" y1="2" x2="5" y2="8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><line x1="2" y1="5" x2="8" y2="5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+                </div>
+              </div>
+              <div style="flex:1;">
+                <div style="font-size:7px;color:#7A5A74;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin-bottom:4px;">分类</div>
+                <div style="background:#F4F4F4;border-radius:10px;padding:9px 11px;display:flex;align-items:center;gap:5px;">
+                  <span style="font-size:10px;">🥗</span>
+                  <span style="font-size:8px;color:#1E0517;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">食品</span>
+                  <svg width="8" height="8" viewBox="0 0 10 10" style="margin-left:auto;"><path d="M2 3.5l3 3 3-3" stroke="#7A5A74" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Confirm -->
+            <div style="background:#1E0517;border-radius:12px;padding:11px;text-align:center;">
+              <span style="font-size:9px;font-weight:800;color:white;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.03em;">加入清单</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-caption">清单</div>
+      <div class="screen-caption-sub">添加购物弹窗</div>
+
+    <div>
+      <div class="phone-shell">
+        <div class="phone-screen">
+          <div class="ph-status">
+            <span class="ph-time">9:41</span>
+            <div class="ph-icons">
+              <svg width="12" height="10" viewBox="0 0 12 10"><rect x="0" y="3" width="2" height="7" rx="0.5" fill="#1E0517"/><rect x="3.3" y="2" width="2" height="8" rx="0.5" fill="#1E0517"/><rect x="6.6" y="0.5" width="2" height="9.5" rx="0.5" fill="#1E0517"/><rect x="9.9" y="0" width="2" height="10" rx="0.5" fill="#1E0517" opacity="0.3"/></svg>
+              <svg width="18" height="10" viewBox="0 0 18 10"><rect x="0" y="1" width="15" height="8" rx="2" stroke="#1E0517" stroke-width="1.3" fill="none"/><rect x="1.5" y="2.5" width="10" height="5" rx="1" fill="#1E0517"/><path d="M16 3.5v3c.8-.4.8-2.6 0-3z" fill="#1E0517" opacity="0.4"/></svg>
+            </div>
+          </div>
+          <!-- Top tab bar -->
+          <div class="ph-tabs">
+            <div class="ph-tab active">周报告</div>
+            <div class="ph-tab">月报告</div>
+            <div class="ph-tab">积分榜</div>
+            <div class="ph-tab">趋势</div>
+          </div>
+          <div class="ph-content" style="padding-top:8px">
+            <div>
+              <div class="ph-greeting-name">本周总结</div>
+            </div>
+            <!-- Donut + summary card -->
+            <div class="ph-row" style="gap:10px; align-items:center">
+              <div style="width:42px; height:42px; border-radius:50%; background:conic-gradient(#F1B1DF 0% 58%, #F1B1DF 58% 78%, #1E0517 78% 90%, #7A5A74 90% 100%); flex-shrink:0"></div>
+              <div>
+                <div style="font-size:7px; font-weight:700; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif; color:#1E0517">家务贡献</div>
+                <div style="font-size:7px; color:#7A5A74; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif; margin-top:2px">张三 58% · 李四 20% · 王五 12%</div>
+              </div>
+            </div>
+            <!-- Person bars -->
+            <div class="ph-row" style="flex-direction:column; gap:6px; align-items:stretch">
+              <div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:3px">
+                  <span style="font-size:6.5px; font-weight:700; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif">张三</span>
+                  <span style="font-size:6.5px; font-weight:700; color:#F1B1DF; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif">★ 240</span>
+                </div>
+                <div class="ph-bar"><div class="ph-bar-fill" style="width:78%; background:#F1B1DF"></div></div>
+              </div>
+              <div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:3px">
+                  <span style="font-size:6.5px; font-weight:700; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif">李四</span>
+                  <span style="font-size:6.5px; font-weight:700; color:#1E0517; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif">★ 160</span>
+                </div>
+                <div class="ph-bar"><div class="ph-bar-fill" style="width:50%; background:#1E0517"></div></div>
+              </div>
+              <div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:3px">
+                  <span style="font-size:6.5px; font-weight:700; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif">王五</span>
+                  <span style="font-size:6.5px; font-weight:700; color:#F1B1DF; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif">★ 120</span>
+                </div>
+                <div class="ph-bar"><div class="ph-bar-fill" style="width:37%; background:#F1B1DF"></div></div>
+              </div>
+            </div>
+            <!-- Share CTA -->
+            <div style="margin-top:auto">
+              <div style="background:#F1B1DF; color:white; border-radius:10px; padding:8px; text-align:center; font-size:6.5px; font-weight:700; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif">
+                📤 分享到朋友圈
+              </div>
+            </div>
+          </div>
+          <!-- Bottom Nav -->
+          <div class="ph-nav">
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-list"/></svg>
+              <span class="ph-nav-label">清单</span>
+            </div>
+            <div class="ph-nav-item active">
+              <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 2 A10 10 0 0 1 22 12 L12 12 Z" fill="#1E0517" opacity="0.5"/><path d="M12 12 L22 12 A10 10 0 1 1 12 2 Z" fill="#1E0517"/></svg>
+              <span class="ph-nav-label" style="color:#1E0517">报表</span>
+            </div>
+            <div class="ph-nav-item">
+              <div style="width:32px;height:32px;background:#E8E8E8;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-top:0;">
+                <span style="font-size:6.5px;font-weight:900;color:#1E0517;letter-spacing:0.03em;">CASA</span>
+              </div>
+            </div>
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-reward"/></svg>
+              <span class="ph-nav-label">奖励</span>
+            </div>
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-profile"/></svg>
+              <span class="ph-nav-label">我的</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-caption">报表</div>
+      <div class="screen-caption-sub">报表</div>
+
+    <div>
+      <div class="phone-shell">
+        <div class="phone-screen" style="display:flex;flex-direction:column;">
+          <div class="ph-status">
+            <span class="ph-time">9:41</span>
+            <div class="ph-icons">
+              <svg width="12" height="10" viewBox="0 0 12 10"><rect x="0" y="3" width="2" height="7" rx="0.5" fill="#1E0517"/><rect x="3.3" y="2" width="2" height="8" rx="0.5" fill="#1E0517"/><rect x="6.6" y="0.5" width="2" height="9.5" rx="0.5" fill="#1E0517"/><rect x="9.9" y="0" width="2" height="10" rx="0.5" fill="#1E0517" opacity="0.3"/></svg>
+              <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 3.5C2.7 1.8 7.3 1.8 9 3.5" stroke="#1E0517" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M2.5 5.2C3.6 4.1 6.4 4.1 7.5 5.2" stroke="#1E0517" stroke-width="1.4" fill="none" stroke-linecap="round"/><circle cx="5" cy="7" r="1" fill="#1E0517"/></svg>
+              <svg width="18" height="10" viewBox="0 0 18 10"><rect x="0" y="1" width="15" height="8" rx="2" stroke="#1E0517" stroke-width="1.3" fill="none"/><rect x="1.5" y="2.5" width="10" height="5" rx="1" fill="#1E0517"/><path d="M16 3.5v3c.8-.4.8-2.6 0-3z" fill="#1E0517" opacity="0.4"/></svg>
+            </div>
+          </div>
+          <div class="ph-tabs">
+            <div class="ph-tab">周报告</div>
+            <div class="ph-tab active">月报告</div>
+            <div class="ph-tab">积分榜</div>
+            <div class="ph-tab">趋势</div>
+          </div>
+          <div class="ph-content" style="padding-top:8px;">
+            <div style="font-size:11px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">2月总结</div>
+            <div style="display:flex;align-items:center;gap:12px;background:#F4F4F4;border-radius:14px;padding:10px 12px;flex-shrink:0;">
+              <svg width="52" height="52" viewBox="0 0 52 52" style="flex-shrink:0;">
+                <circle cx="26" cy="26" r="20" fill="none" stroke="#E8E8E8" stroke-width="10"/>
+                <circle cx="26" cy="26" r="20" fill="none" stroke="#F1B1DF" stroke-width="10" stroke-dasharray="75.4 125.6" stroke-dashoffset="0" transform="rotate(-90 26 26)"/>
+                <circle cx="26" cy="26" r="20" fill="none" stroke="#1E0517" stroke-width="10" stroke-dasharray="37.7 163.4" stroke-dashoffset="-75.4" transform="rotate(-90 26 26)"/>
+                <circle cx="26" cy="26" r="20" fill="none" stroke="#7A5A74" stroke-width="10" stroke-dasharray="25.1 175.9" stroke-dashoffset="-113.1" transform="rotate(-90 26 26)"/>
+                <text x="26" y="29" text-anchor="middle" font-size="8" font-weight="800" fill="#1E0517" font-family="-apple-system,BlinkMacSystemFont,sans-serif">48%</text>
+              </svg>
+              <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
+                <div style="font-size:7px;font-weight:700;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin-bottom:2px;">家务贡献</div>
+                <div style="display:flex;align-items:center;gap:5px;"><div style="width:7px;height:7px;border-radius:2px;background:#F1B1DF;"></div><span style="font-size:7px;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">张三 48%</span></div>
+                <div style="display:flex;align-items:center;gap:5px;"><div style="width:7px;height:7px;border-radius:2px;background:#1E0517;"></div><span style="font-size:7px;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">李四 30%</span></div>
+                <div style="display:flex;align-items:center;gap:5px;"><div style="width:7px;height:7px;border-radius:2px;background:#7A5A74;"></div><span style="font-size:7px;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">王五 22%</span></div>
+              </div>
+            </div>
+            <div class="ph-row" style="flex-direction:column;gap:6px;align-items:stretch;">
+              <div><div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:6.5px;font-weight:700;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">张三</span><span style="font-size:6.5px;font-weight:700;color:#F1B1DF;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">★ 960</span></div><div class="ph-bar"><div class="ph-bar-fill" style="width:80%;background:#F1B1DF;"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:6.5px;font-weight:700;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">李四</span><span style="font-size:6.5px;font-weight:700;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">★ 600</span></div><div class="ph-bar"><div class="ph-bar-fill" style="width:50%;background:#1E0517;"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="font-size:6.5px;font-weight:700;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">王五</span><span style="font-size:6.5px;font-weight:700;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">★ 440</span></div><div class="ph-bar"><div class="ph-bar-fill" style="width:37%;background:#7A5A74;"></div></div></div>
+            </div>
+            <div style="margin-top:auto;"><div style="background:#F1B1DF;color:#1E0517;border-radius:10px;padding:8px;text-align:center;font-size:6.5px;font-weight:700;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">📤 分享到朋友圈</div></div>
+          </div>
+          <div class="ph-nav">
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-list"/></svg>
+              <span class="ph-nav-label">清单</span>
+            </div>
+            <div class="ph-nav-item active">
+              <svg width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="#1E0517" stroke-width="1.6"/><path d="M12 12 L12 4 A8 8 0 0 1 19.5 16 Z" fill="#F1B1DF"/><path d="M12 12 L19.5 16 A8 8 0 0 1 4.5 16 Z" fill="#1E0517"/></svg>
+              <span class="ph-nav-label" style="color:#1E0517">报表</span>
+            </div>
+            <div class="ph-nav-item">
+              <div style="width:32px;height:32px;background:#E8E8E8;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                <span style="font-size:6.5px;font-weight:900;color:#1E0517;letter-spacing:0.03em;">CASA</span>
+              </div>
+            </div>
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-reward"/></svg>
+              <span class="ph-nav-label">奖励</span>
+            </div>
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-profile"/></svg>
+              <span class="ph-nav-label">我的</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-caption">报表</div>
+      <div class="screen-caption-sub">月报告</div>
+
+    <div>
+      <div class="phone-shell">
+        <div class="phone-screen" style="display:flex;flex-direction:column;">
+          <div class="ph-status">
+            <span class="ph-time">9:41</span>
+            <div class="ph-icons">
+              <svg width="12" height="10" viewBox="0 0 12 10"><rect x="0" y="3" width="2" height="7" rx="0.5" fill="#1E0517"/><rect x="3.3" y="2" width="2" height="8" rx="0.5" fill="#1E0517"/><rect x="6.6" y="0.5" width="2" height="9.5" rx="0.5" fill="#1E0517"/><rect x="9.9" y="0" width="2" height="10" rx="0.5" fill="#1E0517" opacity="0.3"/></svg>
+              <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 3.5C2.7 1.8 7.3 1.8 9 3.5" stroke="#1E0517" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M2.5 5.2C3.6 4.1 6.4 4.1 7.5 5.2" stroke="#1E0517" stroke-width="1.4" fill="none" stroke-linecap="round"/><circle cx="5" cy="7" r="1" fill="#1E0517"/></svg>
+              <svg width="18" height="10" viewBox="0 0 18 10"><rect x="0" y="1" width="15" height="8" rx="2" stroke="#1E0517" stroke-width="1.3" fill="none"/><rect x="1.5" y="2.5" width="10" height="5" rx="1" fill="#1E0517"/><path d="M16 3.5v3c.8-.4.8-2.6 0-3z" fill="#1E0517" opacity="0.4"/></svg>
+            </div>
+          </div>
+          <div class="ph-tabs">
+            <div class="ph-tab">周报告</div>
+            <div class="ph-tab">月报告</div>
+            <div class="ph-tab active">积分榜</div>
+            <div class="ph-tab">趋势</div>
+          </div>
+          <div class="ph-content" style="padding-top:8px;">
+            <div style="font-size:11px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">本周积分榜</div>
+            <div style="display:flex;align-items:flex-end;justify-content:center;gap:6px;padding:6px 0 4px;flex-shrink:0;">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:3px;"><div style="width:28px;height:28px;border-radius:50%;background:#F4F4F4;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">李</div><div style="width:34px;height:28px;background:#E8E8E8;border-radius:6px 6px 0 0;display:flex;align-items:center;justify-content:center;"><span style="font-size:9px;">🥈</span></div><div style="font-size:6.5px;font-weight:700;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">160分</div></div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:3px;"><div style="font-size:11px;">👑</div><div style="width:32px;height:32px;border-radius:50%;background:#F1B1DF;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">张</div><div style="width:38px;height:38px;background:#F1B1DF;border-radius:6px 6px 0 0;display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;">🥇</span></div><div style="font-size:6.5px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">240分</div></div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:3px;"><div style="width:28px;height:28px;border-radius:50%;background:#F4F4F4;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">王</div><div style="width:34px;height:20px;background:#E8E8E8;border-radius:6px 6px 0 0;display:flex;align-items:center;justify-content:center;"><span style="font-size:9px;">🥉</span></div><div style="font-size:6.5px;font-weight:700;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">120分</div></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              <div style="background:#F1B1DF;border-radius:12px;padding:9px 12px;display:flex;align-items:center;gap:8px;"><span style="font-size:9px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">🥇 1</span><div style="width:22px;height:22px;border-radius:50%;background:#1E0517;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:white;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">张</div><div style="flex:1;font-size:8.5px;font-weight:700;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">张三</div><div style="font-size:8.5px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">240 ★</div></div>
+              <div style="background:#F4F4F4;border-radius:12px;padding:9px 12px;display:flex;align-items:center;gap:8px;"><span style="font-size:9px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;opacity:0.5;">🥈 2</span><div style="width:22px;height:22px;border-radius:50%;background:#7A5A74;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:white;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">李</div><div style="flex:1;font-size:8.5px;font-weight:600;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">李四</div><div style="font-size:8.5px;font-weight:700;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">160 ★</div></div>
+              <div style="background:#F4F4F4;border-radius:12px;padding:9px 12px;display:flex;align-items:center;gap:8px;"><span style="font-size:9px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;opacity:0.5;">🥉 3</span><div style="width:22px;height:22px;border-radius:50%;background:#C4A8C0;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:white;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">王</div><div style="flex:1;font-size:8.5px;font-weight:600;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">王五</div><div style="font-size:8.5px;font-weight:700;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">120 ★</div></div>
+              <div style="background:#F4F4F4;border-radius:12px;padding:9px 12px;display:flex;align-items:center;gap:8px;opacity:0.5;"><span style="font-size:9px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;opacity:0.5;">4</span><div style="width:22px;height:22px;border-radius:50%;background:#E8E8E8;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">马</div><div style="flex:1;font-size:8.5px;font-weight:600;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">马六</div><div style="font-size:8.5px;font-weight:700;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">80 ★</div></div>
+            </div>
+          </div>
+          <div class="ph-nav">
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-list"/></svg>
+              <span class="ph-nav-label">清单</span>
+            </div>
+            <div class="ph-nav-item active">
+              <svg width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="#1E0517" stroke-width="1.6"/><path d="M12 12 L12 4 A8 8 0 0 1 19.5 16 Z" fill="#F1B1DF"/><path d="M12 12 L19.5 16 A8 8 0 0 1 4.5 16 Z" fill="#1E0517"/></svg>
+              <span class="ph-nav-label" style="color:#1E0517">报表</span>
+            </div>
+            <div class="ph-nav-item">
+              <div style="width:32px;height:32px;background:#E8E8E8;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                <span style="font-size:6.5px;font-weight:900;color:#1E0517;letter-spacing:0.03em;">CASA</span>
+              </div>
+            </div>
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-reward"/></svg>
+              <span class="ph-nav-label">奖励</span>
+            </div>
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-profile"/></svg>
+              <span class="ph-nav-label">我的</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-caption">报表</div>
+      <div class="screen-caption-sub">积分榜</div>
+
+    <div>
+      <div class="phone-shell">
+        <div class="phone-screen" style="display:flex;flex-direction:column;">
+          <div class="ph-status">
+            <span class="ph-time">9:41</span>
+            <div class="ph-icons">
+              <svg width="12" height="10" viewBox="0 0 12 10"><rect x="0" y="3" width="2" height="7" rx="0.5" fill="#1E0517"/><rect x="3.3" y="2" width="2" height="8" rx="0.5" fill="#1E0517"/><rect x="6.6" y="0.5" width="2" height="9.5" rx="0.5" fill="#1E0517"/><rect x="9.9" y="0" width="2" height="10" rx="0.5" fill="#1E0517" opacity="0.3"/></svg>
+              <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 3.5C2.7 1.8 7.3 1.8 9 3.5" stroke="#1E0517" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M2.5 5.2C3.6 4.1 6.4 4.1 7.5 5.2" stroke="#1E0517" stroke-width="1.4" fill="none" stroke-linecap="round"/><circle cx="5" cy="7" r="1" fill="#1E0517"/></svg>
+              <svg width="18" height="10" viewBox="0 0 18 10"><rect x="0" y="1" width="15" height="8" rx="2" stroke="#1E0517" stroke-width="1.3" fill="none"/><rect x="1.5" y="2.5" width="10" height="5" rx="1" fill="#1E0517"/><path d="M16 3.5v3c.8-.4.8-2.6 0-3z" fill="#1E0517" opacity="0.4"/></svg>
+            </div>
+          </div>
+          <div class="ph-tabs">
+            <div class="ph-tab">周报告</div>
+            <div class="ph-tab">月报告</div>
+            <div class="ph-tab">积分榜</div>
+            <div class="ph-tab active">趋势</div>
+          </div>
+          <div class="ph-content" style="padding-top:8px;">
+            <div style="font-size:11px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">任务趋势</div>
+            <div style="display:flex;background:#F4F4F4;border-radius:10px;padding:3px;gap:2px;flex-shrink:0;">
+              <div style="flex:1;background:#1E0517;border-radius:7px;padding:5px;text-align:center;"><span style="font-size:7px;font-weight:700;color:white;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">近7天</span></div>
+              <div style="flex:1;padding:5px;text-align:center;"><span style="font-size:7px;font-weight:600;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">近30天</span></div>
+              <div style="flex:1;padding:5px;text-align:center;"><span style="font-size:7px;font-weight:600;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">近3月</span></div>
+            </div>
+            <div style="background:#F4F4F4;border-radius:14px;padding:10px 12px;flex-shrink:0;">
+              <div style="font-size:6.5px;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin-bottom:6px;">已完成任务数</div>
+              <svg width="100%" height="52" viewBox="0 0 160 52" preserveAspectRatio="none">
+                <polyline points="0,38 24,28 48,32 72,14 96,20 120,10 160,18" fill="none" stroke="#F1B1DF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="0,44 24,40 48,44 72,36 96,38 120,32 160,30" fill="none" stroke="#1E0517" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3,2"/>
+                <circle cx="120" cy="10" r="3" fill="#F1B1DF"/>
+              </svg>
+              <div style="display:flex;justify-content:space-between;margin-top:2px;"><span style="font-size:5.5px;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">3/5</span><span style="font-size:5.5px;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">3/7</span><span style="font-size:5.5px;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">3/9</span><span style="font-size:5.5px;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">3/11</span></div>
+            </div>
+            <div style="display:flex;gap:12px;">
+              <div style="display:flex;align-items:center;gap:4px;"><div style="width:12px;height:2.5px;background:#F1B1DF;border-radius:2px;"></div><span style="font-size:6.5px;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">本周</span></div>
+              <div style="display:flex;align-items:center;gap:4px;"><div style="width:12px;height:2px;background:#1E0517;border-radius:2px;"></div><span style="font-size:6.5px;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">上周</span></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              <div style="background:#F4F4F4;border-radius:12px;padding:9px 12px;display:flex;align-items:center;gap:8px;"><span style="font-size:14px;">📈</span><div><div style="font-size:7.5px;font-weight:700;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">本周完成率提升 12%</div><div style="font-size:6.5px;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">相比上周表现更好！</div></div></div>
+              <div style="background:#F4F4F4;border-radius:12px;padding:9px 12px;display:flex;align-items:center;gap:8px;"><span style="font-size:14px;">⏰</span><div><div style="font-size:7.5px;font-weight:700;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">周三最活跃</div><div style="font-size:6.5px;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">平均完成 8 项家务</div></div></div>
+            </div>
+          </div>
+          <div class="ph-nav">
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-list"/></svg>
+              <span class="ph-nav-label">清单</span>
+            </div>
+            <div class="ph-nav-item active">
+              <svg width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="#1E0517" stroke-width="1.6"/><path d="M12 12 L12 4 A8 8 0 0 1 19.5 16 Z" fill="#F1B1DF"/><path d="M12 12 L19.5 16 A8 8 0 0 1 4.5 16 Z" fill="#1E0517"/></svg>
+              <span class="ph-nav-label" style="color:#1E0517">报表</span>
+            </div>
+            <div class="ph-nav-item">
+              <div style="width:32px;height:32px;background:#E8E8E8;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                <span style="font-size:6.5px;font-weight:900;color:#1E0517;letter-spacing:0.03em;">CASA</span>
+              </div>
+            </div>
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-reward"/></svg>
+              <span class="ph-nav-label">奖励</span>
+            </div>
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-profile"/></svg>
+              <span class="ph-nav-label">我的</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-caption">报表</div>
+      <div class="screen-caption-sub">趋势</div>
+
+    <div>
+      <div class="phone-shell">
+        <div class="phone-screen">
+          <div class="ph-status">
+            <span class="ph-time">9:41</span>
+            <div class="ph-icons">
+              <svg width="12" height="10" viewBox="0 0 12 10"><rect x="0" y="3" width="2" height="7" rx="0.5" fill="#1E0517"/><rect x="3.3" y="2" width="2" height="8" rx="0.5" fill="#1E0517"/><rect x="6.6" y="0.5" width="2" height="9.5" rx="0.5" fill="#1E0517"/><rect x="9.9" y="0" width="2" height="10" rx="0.5" fill="#1E0517" opacity="0.3"/></svg>
+              <svg width="18" height="10" viewBox="0 0 18 10"><rect x="0" y="1" width="15" height="8" rx="2" stroke="#1E0517" stroke-width="1.3" fill="none"/><rect x="1.5" y="2.5" width="10" height="5" rx="1" fill="#1E0517"/><path d="M16 3.5v3c.8-.4.8-2.6 0-3z" fill="#1E0517" opacity="0.4"/></svg>
+            </div>
+          </div>
+          <div class="ph-content">
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div class="ph-greeting-name">我的奖励</div>
+                <div style="width:20px;height:20px;border-radius:50%;background:#1E0517;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+                  <svg width="9" height="9" viewBox="0 0 12 12"><line x1="6" y1="2" x2="6" y2="10" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="2" y1="6" x2="10" y2="6" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+                </div>
+              </div>
+            </div>
+            <!-- Points card -->
+            <div class="ph-card" style="background:#1E0517">
+              <div style="font-size:15px">⭐</div>
+              <div>
+                <div class="ph-card-label">本周积分 Points</div>
+                <div class="ph-card-sub">+20 pts since yesterday</div>
+              </div>
+              <div class="ph-card-num">100</div>
+            </div>
+            <!-- Reward items -->
+            <div class="ph-section-label" style="margin-top:2px">兑换奖励 Redeem</div>
+            <div class="ph-row">
+              <span style="font-size:11px">🎮</span>
+              <div style="flex:1">
+                <div class="ph-row-label">30分钟屏幕时间</div>
+                <div style="font-size:7px; color:#7A5A74; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif">需50积分</div>
+              </div>
+              <div class="ph-tag" style="background:#F1B1DF; color:#1E0517">Redeem</div>
+            </div>
+            <div class="ph-row">
+              <span style="font-size:11px">🍦</span>
+              <div style="flex:1">
+                <div class="ph-row-label">吃冰淇淋</div>
+                <div style="font-size:7px; color:#7A5A74; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif">1需50积分</div>
+              </div>
+              <div class="ph-tag" style="background:#F1B1DF; color:#1E0517">50 more</div>
+            </div>
+            <div class="ph-row">
+              <span style="font-size:11px">🧸</span>
+              <div style="flex:1">
+                <div class="ph-row-label">新玩具（京东券）</div>
+                <div style="font-size:7px; color:#7A5A74; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif">需300积分</div>
+              </div>
+              <div class="ph-tag" style="background:#F1B1DF; color:#1E0517">200 more</div>
+            </div>
+            <div style="margin-top:auto">
+              <div class="ph-section-label" style="margin-bottom:4px">距下个奖励</div>
+              <div class="ph-bar"><div class="ph-bar-fill" style="width:67%; background:#1E0517"></div></div>
+            </div>
+          </div>
+          <!-- Bottom Nav -->
+          <div class="ph-nav">
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-list"/></svg>
+              <span class="ph-nav-label">清单</span>
+            </div>
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 2 A10 10 0 0 1 22 12 L12 12 Z" fill="#1E0517" opacity="0.4"/><path d="M12 12 L22 12 A10 10 0 1 1 12 2 Z" fill="#1E0517"/></svg>
+              <span class="ph-nav-label">报表</span>
+            </div>
+            <div class="ph-nav-item">
+              <div style="width:32px;height:32px;background:#E8E8E8;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-top:0;">
+                <span style="font-size:6.5px;font-weight:900;color:#1E0517;letter-spacing:0.03em;">CASA</span>
+              </div>
+            </div>
+            <div class="ph-nav-item active">
+              <svg width="16" height="16" viewBox="0 0 24 24">
+                <polygon points="12,3 14.5,9 21,9.5 16.5,14 18,20.5 12,17 6,20.5 7.5,14 3,9.5 9.5,9" fill="#1E0517" stroke="#1E0517" stroke-width="0.5" stroke-linejoin="round"/>
+              </svg>
+              <span class="ph-nav-label" style="color:#1E0517">奖励</span>
+            </div>
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-profile"/></svg>
+              <span class="ph-nav-label">我的</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-caption">奖励</div>
+      <div class="screen-caption-sub">奖励</div>
+
+    <div>
+      <div class="phone-shell">
+        <div class="phone-screen" style="display:flex;flex-direction:column;background:#FFFFFF;position:relative;overflow:hidden;">
+          <div class="ph-status">
+            <span class="ph-time">9:41</span>
+            <div class="ph-icons">
+              <svg width="12" height="10" viewBox="0 0 12 10"><rect x="0" y="3" width="2" height="7" rx="0.5" fill="#1E0517"/><rect x="3.3" y="2" width="2" height="8" rx="0.5" fill="#1E0517"/><rect x="6.6" y="0.5" width="2" height="9.5" rx="0.5" fill="#1E0517"/><rect x="9.9" y="0" width="2" height="10" rx="0.5" fill="#1E0517" opacity="0.3"/></svg>
+              <svg width="18" height="10" viewBox="0 0 18 10"><rect x="0" y="1" width="15" height="8" rx="2" stroke="#1E0517" stroke-width="1.3" fill="none"/><rect x="1.5" y="2.5" width="10" height="5" rx="1" fill="#1E0517"/><path d="M16 3.5v3c.8-.4.8-2.6 0-3z" fill="#1E0517" opacity="0.4"/></svg>
+            </div>
+          </div>
+          <!-- Dimmed bg -->
+          <div style="flex:1;padding:4px 14px 0;display:flex;flex-direction:column;gap:8px;filter:blur(1px);opacity:0.3;pointer-events:none;">
+            <div style="display:flex;justify-content:space-between;align-items:center;"><div class="ph-greeting-name">我的奖励</div></div>
+            <div style="background:#1E0517;border-radius:14px;padding:11px 14px;display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">⭐</span><div style="flex:1;"><div style="font-size:9px;font-weight:800;color:white;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">本周积分</div></div><div style="font-size:24px;font-weight:900;color:white;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">100</div></div>
+            <div style="background:#F4F4F4;border-radius:12px;padding:9px 11px;display:flex;align-items:center;gap:7px;"><span style="font-size:12px;">🎮</span><div style="font-size:8px;flex:1;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">30分钟屏幕时间</div></div>
+          </div>
+          <!-- Scrim -->
+          <div style="position:absolute;inset:0;background:rgba(30,5,23,0.5);"></div>
+          <!-- Popup sheet -->
+          <div style="position:absolute;bottom:0;left:0;right:0;background:white;border-radius:20px 20px 0 0;padding:0 16px 20px;z-index:10;">
+            <div style="display:flex;justify-content:center;padding:10px 0 6px;">
+              <div style="width:30px;height:3px;border-radius:100px;background:#E0E0E0;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+              <div style="font-size:11px;font-weight:800;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">添加奖励</div>
+              <div style="width:22px;height:22px;border-radius:50%;background:#F4F4F4;display:flex;align-items:center;justify-content:center;">
+                <svg width="9" height="9" viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9" stroke="#1E0517" stroke-width="1.5" stroke-linecap="round"/><line x1="9" y1="1" x2="1" y2="9" stroke="#1E0517" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </div>
+            </div>
+            <!-- Reward name -->
+            <div style="margin-bottom:10px;">
+              <div style="font-size:7px;color:#7A5A74;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin-bottom:4px;">奖励名称</div>
+              <div style="background:#F4F4F4;border-radius:10px;padding:9px 11px;display:flex;align-items:center;gap:6px;border:1.5px solid #F1B1DF;">
+                <span style="font-size:11px;">🎬</span>
+                <span style="font-size:8.5px;font-weight:600;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;flex:1;">看一部电影</span>
+                <div style="width:1.5px;height:13px;background:#F1B1DF;border-radius:1px;"></div>
+              </div>
+            </div>
+            <!-- Points cost + who -->
+            <div style="display:flex;gap:8px;margin-bottom:10px;">
+              <div style="flex:1;">
+                <div style="font-size:7px;color:#7A5A74;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin-bottom:4px;">所需积分</div>
+                <div style="background:#F4F4F4;border-radius:10px;padding:9px 11px;display:flex;align-items:center;justify-content:space-between;">
+                  <div style="width:16px;height:16px;border-radius:50%;background:#1E0517;display:flex;align-items:center;justify-content:center;"><svg width="7" height="7" viewBox="0 0 10 10"><line x1="2" y1="5" x2="8" y2="5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+                  <span style="font-size:9px;font-weight:700;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">80</span>
+                  <div style="width:16px;height:16px;border-radius:50%;background:#1E0517;display:flex;align-items:center;justify-content:center;"><svg width="7" height="7" viewBox="0 0 10 10"><line x1="5" y1="2" x2="5" y2="8" stroke="white" stroke-width="1.5" stroke-linecap="round"/><line x1="2" y1="5" x2="8" y2="5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+                </div>
+              </div>
+              <div style="flex:1;">
+                <div style="font-size:7px;color:#7A5A74;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin-bottom:4px;">适用对象</div>
+                <div style="background:#F4F4F4;border-radius:10px;padding:9px 11px;display:flex;align-items:center;gap:5px;">
+                  <div style="display:flex;gap:2px;">
+                    <div style="width:14px;height:14px;border-radius:50%;background:#F1B1DF;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;color:#1E0517;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">张</div>
+                    <div style="width:14px;height:14px;border-radius:50%;background:#1E0517;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;color:white;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">李</div>
+                  </div>
+                  <span style="font-size:7.5px;color:#7A5A74;font-family:-apple-system,BlinkMacSystemFont,sans-serif;">全家</span>
+                  <svg width="8" height="8" viewBox="0 0 10 10" style="margin-left:auto;"><path d="M2 3.5l3 3 3-3" stroke="#7A5A74" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>
+                </div>
+              </div>
+            </div>
+            <!-- Emoji row -->
+            <div style="margin-bottom:14px;">
+              <div style="font-size:7px;color:#7A5A74;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,sans-serif;margin-bottom:6px;">选择图标</div>
+              <div style="display:flex;gap:7px;">
+                <div style="width:28px;height:28px;border-radius:8px;background:#F4F4F4;display:flex;align-items:center;justify-content:center;font-size:13px;">🎮</div>
+                <div style="width:28px;height:28px;border-radius:8px;background:#F4F4F4;display:flex;align-items:center;justify-content:center;font-size:13px;">🍦</div>
+                <div style="width:28px;height:28px;border-radius:8px;background:#F1B1DF;display:flex;align-items:center;justify-content:center;font-size:13px;">🎬</div>
+                <div style="width:28px;height:28px;border-radius:8px;background:#F4F4F4;display:flex;align-items:center;justify-content:center;font-size:13px;">🧸</div>
+                <div style="width:28px;height:28px;border-radius:8px;background:#F4F4F4;display:flex;align-items:center;justify-content:center;font-size:13px;">🎁</div>
+              </div>
+            </div>
+            <!-- Confirm -->
+            <div style="background:#1E0517;border-radius:12px;padding:11px;text-align:center;">
+              <span style="font-size:9px;font-weight:800;color:white;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.03em;">创建奖励</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-caption">奖励</div>
+      <div class="screen-caption-sub">添加奖励弹窗</div>
+
+    <div>
+      <div class="phone-shell">
+        <div class="phone-screen">
+          <div class="ph-status">
+            <span class="ph-time">9:41</span>
+            <div class="ph-icons">
+              <svg width="12" height="10" viewBox="0 0 12 10"><rect x="0" y="3" width="2" height="7" rx="0.5" fill="#1E0517"/><rect x="3.3" y="2" width="2" height="8" rx="0.5" fill="#1E0517"/><rect x="6.6" y="0.5" width="2" height="9.5" rx="0.5" fill="#1E0517"/><rect x="9.9" y="0" width="2" height="10" rx="0.5" fill="#1E0517" opacity="0.3"/></svg>
+              <svg width="18" height="10" viewBox="0 0 18 10"><rect x="0" y="1" width="15" height="8" rx="2" stroke="#1E0517" stroke-width="1.3" fill="none"/><rect x="1.5" y="2.5" width="10" height="5" rx="1" fill="#1E0517"/><path d="M16 3.5v3c.8-.4.8-2.6 0-3z" fill="#1E0517" opacity="0.4"/></svg>
+            </div>
+          </div>
+          <div class="ph-content">
+            <!-- Profile header -->
+            <div style="display:flex; align-items:center; gap:10px; padding:6px 0">
+              <div style="width:44px; height:44px; border-radius:14px; background:#F1B1DF; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0">👩</div>
+              <div>
+                <div style="font-size:12px;font-weight:800;font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;color:#1E0517">张三</div>
+              </div>
+              <div class="ph-tag" style="background:#F1B1DF; color:white; margin-left:auto">会员</div>
+            </div>
+            <!-- Stats mini row -->
+            <div style="display:flex; gap:6px">
+              <div style="flex:1; background:#F4F4F4; border:none; border-radius:10px; padding:8px; text-align:center">
+                <div style="font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif; font-size:11px; font-weight:700; color:#F1B1DF">240</div>
+                <div style="font-size:7px; color:#7A5A74; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif">本周积分</div>
+              </div>
+              <div style="flex:1; background:#F4F4F4; border:none; border-radius:10px; padding:8px; text-align:center">
+                <div style="font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif; font-size:11px; font-weight:700; color:#F1B1DF">12</div>
+                <div style="font-size:7px; color:#7A5A74; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif">本周任务</div>
+              </div>
+              <div style="flex:1; background:#F4F4F4; border:none; border-radius:10px; padding:8px; text-align:center">
+                <div style="font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif; font-size:11px; font-weight:700; color:#1E0517">58%</div>
+                <div style="font-size:7px; color:#7A5A74; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif">贡献占比</div>
+              </div>
+            </div>
+            <!-- Menu items -->
+            <div class="ph-section-label" style="margin-top:2px">设置</div>
+            <div class="ph-row" style="justify-content:space-between">
+              <span style="font-size:9.5px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif; font-weight:600">👨‍👩‍👧 家庭成员管理</span>
+              <span style="color:#7A5A74; font-size:7px">›</span>
+            </div>
+            <div class="ph-row" style="justify-content:space-between">
+              <span style="font-size:9.5px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif; font-weight:600">🔔 通知设置</span>
+              <span style="color:#7A5A74; font-size:7px">›</span>
+            </div>
+            <div class="ph-row" style="justify-content:space-between">
+              <span style="font-size:9.5px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif; font-weight:600">👴 老人模式</span>
+              <span style="color:#7A5A74; font-size:7px">›</span>
+            </div>
+          </div>
+          <!-- Bottom Nav -->
+          <div class="ph-nav">
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-list"/></svg>
+              <span class="ph-nav-label">清单</span>
+            </div>
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 2 A10 10 0 0 1 22 12 L12 12 Z" fill="#1E0517" opacity="0.4"/><path d="M12 12 L22 12 A10 10 0 1 1 12 2 Z" fill="#1E0517"/></svg>
+              <span class="ph-nav-label">报表</span>
+            </div>
+            <div class="ph-nav-item">
+              <div style="width:32px;height:32px;background:#E8E8E8;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-top:0;">
+                <span style="font-size:6.5px;font-weight:900;color:#1E0517;letter-spacing:0.03em;">CASA</span>
+              </div>
+            </div>
+            <div class="ph-nav-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" color="#1E0517"><use href="#icon-reward"/></svg>
+              <span class="ph-nav-label">奖励</span>
+            </div>
+            <div class="ph-nav-item active">
+              <svg width="20" height="20" viewBox="0 0 24 24">
+                <circle cx="12" cy="8" r="3.5" fill="#1E0517"/>
+                <path d="M5 20c0-3.87 3.13-7 7-7s7 3.13 7 7" stroke="#1E0517" stroke-width="2" fill="none" stroke-linecap="round"/>
+              </svg>
+              <span class="ph-nav-label" style="color:#1E0517">我的</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-caption">我的</div>
+      <div class="screen-caption-sub">我的</div>
+
+    </div>
+
+  </div><!-- end screens-row -->
+
+  <!-- 报表 Top Tab Detail -->
+  <div style="margin-top:52px">
+    <div class="section-tag" style="margin-bottom:8px">报表 Tab Detail</div>
+    <p style="font-size:15px; color:var(--gray); margin-bottom:28px; line-height:1.7">The 报表 section has 4 tabs accessible from the top bar, each showing a different analytical view of family data.</p>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:16px">
+      <div class="feature-card" style="padding:20px">
+        <div style="font-size:7px; font-weight:700; letter-spacing:0.1em; color:var(--terracotta); text-transform:uppercase; margin-bottom:6px">Tab 1</div>
+        <div style="font-weight:800; font-size:15px; margin-bottom:6px; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif">周报告 Weekly Report</div>
+        <p class="feature-desc">Chore completion counts per person, points earned, fairness percentage donut chart, shareable card for WeChat Moments.</p>
+      </div>
+      <div class="feature-card" style="padding:20px">
+        <div style="font-size:7px; font-weight:700; letter-spacing:0.1em; color:var(--terracotta); text-transform:uppercase; margin-bottom:6px">Tab 2</div>
+        <div style="font-weight:800; font-size:15px; margin-bottom:6px; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif">积分榜 Scoreboard</div>
+        <p class="feature-desc">Ranked family leaderboard by points. Weekly and all-time views. Animated rank changes. Badges for streaks and milestones.</p>
+      </div>
+      <div class="feature-card" style="padding:20px">
+        <div style="font-size:7px; font-weight:700; letter-spacing:0.1em; color:var(--terracotta); text-transform:uppercase; margin-bottom:6px">Tab 3</div>
+        <div style="font-weight:800; font-size:15px; margin-bottom:6px; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif">公平指数 Fairness</div>
+        <p class="feature-desc">AI-generated fairness score with breakdown by task category (cleaning, cooking, childcare). Tracks improvement or decline week over week.</p>
+      </div>
+      <div class="feature-card" style="padding:20px">
+        <div style="font-size:7px; font-weight:700; letter-spacing:0.1em; color:var(--terracotta); text-transform:uppercase; margin-bottom:6px">Tab 4</div>
+        <div style="font-weight:800; font-size:15px; margin-bottom:6px; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',Arial,sans-serif">趋势 Trends</div>
+        <p class="feature-desc">4-week sparkline chart per 家庭成员. Seasonal patterns (Spring Festival spike). Identifies who's improving vs. declining over time.</p>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ═══ TECH STACK ═══ -->
+<section class="section" id="tech">
+  <div class="section-tag">Engineering</div>
+  <h2 class="section-title">Tech Stack</h2>
+  <p class="section-intro">Chosen for speed of development, China-compatibility, and long-term scalability. Every tool is vetted to work inside China's firewall. Nothing that's blocked or slow in the mainland.</p>
+
+  <div class="tech-grid">
+    <div class="tech-card">
+      <div class="tech-layer">Frontend · Mobile</div>
+      <div class="tech-name">React Native 0.73+</div>
+      <div class="tech-why">One codebase → iOS + Android. Large ecosystem, fast iteration. NativeWind for styling.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-layer">Frontend · WeChat</div>
+      <div class="tech-name">Taro.js + 微信小程序</div>
+      <div class="tech-why">Compiles to WeChat Mini Program + React Native from one codebase. Highest reach, zero install friction in China.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-layer">Backend</div>
+      <div class="tech-name">Node.js 20 + Express</div>
+      <div class="tech-why">Fast to build, easy to hire for. REST API shared between app and mini program. BullMQ for job queues.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-layer">Database</div>
+      <div class="tech-name">PostgreSQL 15 + Prisma</div>
+      <div class="tech-why">Reliable relational DB — ideal for family/task/points data. Prisma for type-safe ORM with migration support.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-layer">Real-time Sync</div>
+      <div class="tech-name">Socket.io + Redis 7</div>
+      <div class="tech-why">Real-time shopping list and chore updates. All 家庭成员s see changes instantly. Redis for session + cache.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-layer">Auth</div>
+      <div class="tech-name">WeChat OAuth + JWT</div>
+      <div class="tech-why">Login with WeChat — zero friction for Chinese users. No new password to remember. JWT for API sessions.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-layer">AI Layer</div>
+      <div class="tech-name">Claude API + 文心一言</div>
+      <div class="tech-why">Claude for chore suggestions and fairness analysis. Baidu ERNIE (文心一言) as China-hosted fallback when needed.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-layer">Notifications</div>
+      <div class="tech-name">JPush + APNs + 微信模板</div>
+      <div class="tech-why">JPush for Android OEMs (Huawei, OPPO, Xiaomi). APNs for iOS. WeChat template messages reach grandparents directly.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-layer">Hosting</div>
+      <div class="tech-name">阿里云 ECS + RDS + OSS</div>
+      <div class="tech-why">Must host in China for performance + ICP compliance. Alibaba Cloud ECS (compute), RDS (PostgreSQL), OSS (storage).</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-layer">Analytics</div>
+      <div class="tech-name">微信数据分析 + Mixpanel</div>
+      <div class="tech-why">WeChat's built-in analytics for mini program metrics + Mixpanel for custom user funnels and retention tracking.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-layer">Payments</div>
+      <div class="tech-name">微信支付 + 支付宝</div>
+      <div class="tech-why">Both required. WeChat Pay for Mini Program flow, Alipay for app store. No credit cards needed — both cover 99% of users.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-layer">Legal / Compliance</div>
+      <div class="tech-name">ICP备案 + 数据安全法</div>
+      <div class="tech-why">ICP license required to operate commercially in China — budget 4–8 weeks. Also comply with PIPL and Data Security Law.</div>
+    </div>
+  </div>
+
+  <div class="insight-box" style="margin-top:44px">
+    <h3>⚠️ Critical China Infrastructure Warning</h3>
+    <p>Never use Google Firebase, Google Analytics, or AWS us-east for China users — these are blocked or extremely slow behind the Great Firewall. Host everything on 阿里云 (Alibaba Cloud) inside China with an ICP license. Start the ICP备案 application on Day 1 of the project — approval takes 4–8 weeks and nothing can go live without it. This is the #1 mistake foreign developers make when building for China.</p>
+  </div>
+</section>
+
+<script>
+function showSection(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>

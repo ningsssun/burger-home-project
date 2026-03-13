@@ -17,6 +17,8 @@ import {
   SharedListDoc,
   ListItemDoc,
   PointsLedgerDoc,
+  RewardDoc,
+  RedemptionDoc,
 } from '../types/models';
 import { FIRESTORE_COLLECTIONS, FIRESTORE_SUBCOLLECTIONS } from '../constants/config';
 
@@ -106,3 +108,15 @@ export const listItemDoc = (listId: string, itemId: string) =>
 
 export const pointsLedgerCol = () =>
   col<PointsLedgerDoc>(FIRESTORE_COLLECTIONS.POINTS_LEDGER);
+
+export const rewardsCol = () =>
+  col<RewardDoc>(FIRESTORE_COLLECTIONS.REWARDS);
+
+export const rewardDoc = (rewardId: string) =>
+  d<RewardDoc>(FIRESTORE_COLLECTIONS.REWARDS, rewardId);
+
+export const redemptionsCol = () =>
+  col<RedemptionDoc>(FIRESTORE_COLLECTIONS.REDEMPTIONS);
+
+export const redemptionDoc = (redemptionId: string) =>
+  d<RedemptionDoc>(FIRESTORE_COLLECTIONS.REDEMPTIONS, redemptionId);
