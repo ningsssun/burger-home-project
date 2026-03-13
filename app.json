@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "burgerhome",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.burgerhome.app",
@@ -44,8 +44,9 @@
       "typedRoutes": false
     },
     "extra": {
+      "router": {},
       "eas": {
-        "projectId": "your-eas-project-id"
+        "projectId": "b96f1321-1f4f-4cbb-8be7-c75196682b1c"
       }
     }
   }
