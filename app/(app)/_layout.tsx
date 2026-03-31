@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { View, Text, StyleSheet } from 'react-native';
 import { Colors, Typography } from '@/shared/constants/theme';
 import { useTasksSubscription } from '@/features/tasks/hooks/useTasks';
+import { useTranslation } from '@/shared/i18n';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -33,6 +34,7 @@ function CasaTabIcon({ focused }: { focused: boolean }) {
 
 export default function AppLayout() {
   useTasksSubscription();
+  const t = useTranslation();
   return (
     <Tabs
       screenOptions={{
@@ -55,14 +57,14 @@ export default function AppLayout() {
       <Tabs.Screen
         name="(lists)"
         options={{
-          title: '清单',
+          title: t.tabLists,
           tabBarIcon: ({ focused }) => <TabIcon name="reader" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="(reports)"
         options={{
-          title: '报表',
+          title: t.tabReports,
           tabBarIcon: ({ focused }) => <TabIcon name="bar-chart" focused={focused} />,
         }}
       />
@@ -76,14 +78,14 @@ export default function AppLayout() {
       <Tabs.Screen
         name="(rewards)"
         options={{
-          title: '奖励',
+          title: t.tabRewards,
           tabBarIcon: ({ focused }) => <TabIcon name="star" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="(profile)"
         options={{
-          title: '我的',
+          title: t.tabProfile,
           tabBarIcon: ({ focused }) => <TabIcon name="person" focused={focused} />,
         }}
       />

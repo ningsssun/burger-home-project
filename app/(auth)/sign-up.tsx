@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -16,21 +16,30 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, Input } from '@/shared/components/ui';
 import { useSignUp } from '@/features/auth/hooks/useSignIn';
 import { Colors, Spacing, Typography } from '@/shared/constants/theme';
+import { useTranslation } from '@/shared/i18n';
 
-const schema = z.object({
-  displayName: z.string().min(2, '姓名至少需要2个字符'),
-  email: z.string().email('请输入有效的邮箱地址'),
-  password: z.string().min(6, '密码至少需要6个字符'),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: '两次密码输入不一致',
-  path: ['confirmPassword'],
-});
-
-type FormData = z.infer<typeof schema>;
+type FormData = {
+  displayName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+};
 
 export default function SignUpScreen() {
   const signUp = useSignUp();
+  const t = useTranslation();
+
+  const schema = useMemo(() =>
+    z.object({
+      displayName: z.string().min(2, t.signUpErrNameMin),
+      email: z.string().email(t.signUpErrEmail),
+      password: z.string().min(6, t.signUpErrPasswordMin),
+      confirmPassword: z.string(),
+    }).refine((data) => data.password === data.confirmPassword, {
+      message: t.signUpErrPasswordMismatch,
+      path: ['confirmPassword'],
+    }),
+  [t]);
 
   const {
     control,
@@ -47,7 +56,7 @@ export default function SignUpScreen() {
       router.replace('/(auth)/join-household');
     } catch (err) {
       const message = err instanceof Error ? err.message : '出现了一些问题';
-      Alert.alert('注册失败', message);
+      Alert.alert(t.signUpAlertTitle, message);
     }
   };
 
@@ -66,8 +75,8 @@ export default function SignUpScreen() {
             style={styles.illustration}
             resizeMode="contain"
           />
-          <Text style={styles.title}>创建账户</Text>
-          <Text style={styles.subtitle}>加入你的家庭，开始记录家务。</Text>
+          <Text style={styles.title}>{t.signUpTitle}</Text>
+          <Text style={styles.subtitle}>{t.signUpSubtitle}</Text>
         </View>
 
         <View style={styles.form}>
@@ -76,8 +85,8 @@ export default function SignUpScreen() {
             name="displayName"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="你的名字"
-                placeholder="请输入姓名"
+                label={t.signUpName}
+                placeholder={t.signUpNamePlaceholder}
                 autoCapitalize="words"
                 autoComplete="name"
                 onChangeText={onChange}
@@ -93,7 +102,7 @@ export default function SignUpScreen() {
             name="email"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="邮箱"
+                label={t.signUpEmail}
                 placeholder="you@example.com"
                 autoCapitalize="none"
                 keyboardType="email-address"
@@ -111,7 +120,7 @@ export default function SignUpScreen() {
             name="password"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="密码"
+                label={t.signUpPassword}
                 placeholder="••••••••"
                 secureTextEntry
                 autoComplete="new-password"
@@ -128,7 +137,7 @@ export default function SignUpScreen() {
             name="confirmPassword"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="确认密码"
+                label={t.signUpConfirmPassword}
                 placeholder="••••••••"
                 secureTextEntry
                 autoComplete="new-password"
@@ -147,14 +156,14 @@ export default function SignUpScreen() {
             size="lg"
             style={{ backgroundColor: Colors.ink }}
           >
-            创建账户
+            {t.signUpBtn}
           </Button>
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>已有账户？{' '}</Text>
+          <Text style={styles.footerText}>{t.signUpHasAccount}{' '}</Text>
           <Link href="/(auth)/sign-in" asChild>
-            <Text style={styles.link}>登录</Text>
+            <Text style={styles.link}>{t.signUpSignInLink}</Text>
           </Link>
         </View>
       </ScrollView>

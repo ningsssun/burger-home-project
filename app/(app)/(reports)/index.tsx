@@ -15,9 +15,10 @@ import { useHouseholdMembers } from '@/features/household/hooks/useHousehold';
 import { useTasks } from '@/features/tasks/hooks/useTasks';
 import { Colors, Spacing, Typography, BorderRadius } from '@/shared/constants/theme';
 import { format, subDays, startOfMonth, startOfWeek } from 'date-fns';
+import { useTranslation } from '@/shared/i18n';
 
-type Tab = '周报告' | '月报告' | '积分榜' | '趋势';
-const TABS: Tab[] = ['周报告', '月报告', '趋势', '积分榜'];
+type Tab = 'weekly' | 'monthly' | 'trends' | 'leaderboard';
+const TABS: Tab[] = ['weekly', 'monthly', 'trends', 'leaderboard'];
 const CHART_COLORS = ['#F1B1DF', '#1E0517', '#7A5A74', '#FFD166', '#06D6A0'];
 
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -110,19 +111,27 @@ function LineChart({ data, width, height = 80 }: { data: number[]; width: number
 
 // ─── Main Screen ─────────────────────────────────────────────────
 export default function ReportsScreen() {
-  const [activeTab, setActiveTab] = useState<Tab>('周报告');
+  const t = useTranslation();
+  const [activeTab, setActiveTab] = useState<Tab>('weekly');
   const leaderboard = useWeeklyLeaderboard();
   const members     = useHouseholdMembers();
   const allTasks    = useTasks();
+
+  const tabLabel = (tab: Tab) => ({
+    weekly: t.reportsWeekly,
+    monthly: t.reportsMonthly,
+    trends: t.reportsTrends,
+    leaderboard: t.reportsLeaderboard,
+  })[tab];
 
   // Weekly: completed tasks per member this week
   const weeklyData = useMemo(() => {
     const sow = startOfWeek(new Date(), { weekStartsOn: 1 });
     return members.map((m, i) => {
-      const count = allTasks.filter(t =>
-        t.status === 'completed' &&
-        t.completedBy === m.userId &&
-        t.completedAt && t.completedAt.toDate() >= sow
+      const count = allTasks.filter(task =>
+        task.status === 'completed' &&
+        task.completedBy === m.userId &&
+        task.completedAt && task.completedAt.toDate() >= sow
       ).length;
       return { ...m, weeklyTasks: count, color: CHART_COLORS[i % CHART_COLORS.length] };
     });
@@ -138,13 +147,13 @@ export default function ReportsScreen() {
   // Monthly: completed tasks per member this month
   const monthlyData = useMemo(() => {
     const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const som = new Date(now.getFullYear(), now.getMonth(), 1);
     return members.map((m, i) => {
-      const count = allTasks.filter(t =>
-        t.status === 'completed' &&
-        t.completedBy === m.userId &&
-        t.completedAt &&
-        t.completedAt.toDate() >= startOfMonth
+      const count = allTasks.filter(task =>
+        task.status === 'completed' &&
+        task.completedBy === m.userId &&
+        task.completedAt &&
+        task.completedAt.toDate() >= som
       ).length;
       return { ...m, monthlyTasks: count, color: CHART_COLORS[i % CHART_COLORS.length] };
     });
@@ -158,19 +167,19 @@ export default function ReportsScreen() {
   }));
 
   // Monthly leaderboard: points earned this calendar month
-  const currentMonthLabel = format(new Date(), 'yyyy年M月');
+  const currentMonthLabel = format(new Date(), t.dateYearMonth);
   const monthlyLeaderboard = useMemo(() => {
     const som = startOfMonth(new Date());
     return [...members]
       .map((m, i) => ({
         ...m,
         monthlyPoints: allTasks
-          .filter(t =>
-            t.status === 'completed' &&
-            t.completedBy === m.userId &&
-            t.completedAt && t.completedAt.toDate() >= som
+          .filter(task =>
+            task.status === 'completed' &&
+            task.completedBy === m.userId &&
+            task.completedAt && task.completedAt.toDate() >= som
           )
-          .reduce((s, t) => s + t.points, 0),
+          .reduce((s, task) => s + task.points, 0),
         color: CHART_COLORS[i % CHART_COLORS.length],
       }))
       .sort((a, b) => b.monthlyPoints - a.monthlyPoints);
@@ -182,9 +191,9 @@ export default function ReportsScreen() {
     return Array.from({ length: 7 }, (_, i) => {
       const day = subDays(today, 6 - i);
       const next = new Date(day); next.setDate(next.getDate() + 1);
-      const count = allTasks.filter(t =>
-        t.status === 'completed' && t.completedAt &&
-        t.completedAt.toDate() >= day && t.completedAt.toDate() < next
+      const count = allTasks.filter(task =>
+        task.status === 'completed' && task.completedAt &&
+        task.completedAt.toDate() >= day && task.completedAt.toDate() < next
       ).length;
       return { label: format(day, 'M/d'), count };
     });
@@ -196,17 +205,17 @@ export default function ReportsScreen() {
     return Array.from({ length: 30 }, (_, i) => {
       const day = subDays(today, 29 - i);
       const next = new Date(day); next.setDate(next.getDate() + 1);
-      const count = allTasks.filter(t =>
-        t.status === 'completed' && t.completedAt &&
-        t.completedAt.toDate() >= day && t.completedAt.toDate() < next
+      const count = allTasks.filter(task =>
+        task.status === 'completed' && task.completedAt &&
+        task.completedAt.toDate() >= day && task.completedAt.toDate() < next
       ).length;
       return { label: format(day, 'M/d'), count };
     });
   }, [allTasks]);
 
   const handleShare = async () => {
-    const lines = leaderboard.map((e, i) => `${i + 1}. ${e.displayName} — ${e.weeklyPoints} 分`);
-    await Share.share({ message: `本周家务排行榜 🏠\n\n${lines.join('\n')}` });
+    const lines = leaderboard.map((e, i) => t.reportsLeaderboardLine(i + 1, e.displayName, e.weeklyPoints));
+    await Share.share({ message: t.reportsShareMsg(lines) });
   };
 
   return (
@@ -219,19 +228,19 @@ export default function ReportsScreen() {
             style={[styles.tab, activeTab === tab && styles.tabActive]}
             onPress={() => setActiveTab(tab)}
           >
-            <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>{tab}</Text>
+            <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>{tabLabel(tab)}</Text>
           </TouchableOpacity>
         ))}
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
-        {/* ── 周报告 ── */}
-        {activeTab === '周报告' && (
+        {/* ── Weekly ── */}
+        {activeTab === 'weekly' && (
           <View style={styles.section}>
             <View style={styles.chartCard}>
-              <Text style={styles.chartCardTitle}>本周家务贡献</Text>
-              <Text style={styles.chartCardSub}>{format(new Date(), 'M月')}本周完成任务</Text>
+              <Text style={styles.chartCardTitle}>{t.reportsWeeklyTitle}</Text>
+              <Text style={styles.chartCardSub}>{t.reportsWeeklySubtitle(format(new Date(), t.dateYearMonth))}</Text>
               <View style={styles.chartRow}>
                 <DonutChart slices={weeklySlices} size={140} />
                 <View style={styles.legend}>
@@ -245,7 +254,7 @@ export default function ReportsScreen() {
                       </View>
                     );
                   })}
-                  {members.length === 0 && <Text style={styles.emptyText}>暂无成员</Text>}
+                  {members.length === 0 && <Text style={styles.emptyText}>{t.reportsNoMembers}</Text>}
                 </View>
               </View>
             </View>
@@ -259,31 +268,31 @@ export default function ReportsScreen() {
                   <View style={styles.barTrack}>
                     <View style={[styles.barFill, { width: `${(m.weeklyTasks / maxTasks) * 100}%`, backgroundColor: m.color }]} />
                   </View>
-                  <Text style={styles.memberPoints}>{m.weeklyTasks} 项</Text>
+                  <Text style={styles.memberPoints}>{m.weeklyTasks} {t.reportsTaskUnit}</Text>
                 </View>
               );
             })}
 
             {totalWeeklyTasks === 0 && (
-              <Text style={styles.emptyText}>本周暂无完成记录</Text>
+              <Text style={styles.emptyText}>{t.reportsNoWeekly}</Text>
             )}
 
             <TouchableOpacity style={styles.shareBtn} onPress={handleShare}>
-              <Text style={styles.shareBtnText}>分享本周报告</Text>
+              <Text style={styles.shareBtnText}>{t.reportsShareWeekly}</Text>
             </TouchableOpacity>
           </View>
         )}
 
-        {/* ── 月报告 ── */}
-        {activeTab === '月报告' && (
+        {/* ── Monthly ── */}
+        {activeTab === 'monthly' && (
           <View style={styles.section}>
             <View style={styles.chartCard}>
-              <Text style={styles.chartCardTitle}>本月家务贡献</Text>
-              <Text style={styles.chartCardSub}>{format(new Date(), 'M月')}完成任务</Text>
+              <Text style={styles.chartCardTitle}>{t.reportsMonthlyTitle}</Text>
+              <Text style={styles.chartCardSub}>{t.reportsMonthlySubtitle(format(new Date(), t.dateYearMonth))}</Text>
               <View style={styles.chartRow}>
                 <DonutChart slices={monthlySlices} size={140} />
                 <View style={styles.legend}>
-                  {monthlyData.map((m, i) => {
+                  {monthlyData.map((m) => {
                     const pct = totalMonthlyTasks > 0 ? Math.round((m.monthlyTasks / totalMonthlyTasks) * 100) : 0;
                     return (
                       <View key={m.userId} style={styles.legendItem}>
@@ -293,13 +302,13 @@ export default function ReportsScreen() {
                       </View>
                     );
                   })}
-                  {members.length === 0 && <Text style={styles.emptyText}>暂无成员</Text>}
+                  {members.length === 0 && <Text style={styles.emptyText}>{t.reportsNoMembers}</Text>}
                 </View>
               </View>
             </View>
 
             {/* Monthly task breakdown */}
-            {monthlyData.map((m, i) => {
+            {monthlyData.map((m) => {
               const maxTasks = Math.max(...monthlyData.map(x => x.monthlyTasks), 1);
               return (
                 <View key={m.userId} style={styles.memberBar}>
@@ -307,23 +316,23 @@ export default function ReportsScreen() {
                   <View style={styles.barTrack}>
                     <View style={[styles.barFill, { width: `${(m.monthlyTasks / maxTasks) * 100}%`, backgroundColor: m.color }]} />
                   </View>
-                  <Text style={styles.memberPoints}>{m.monthlyTasks} 项</Text>
+                  <Text style={styles.memberPoints}>{m.monthlyTasks} {t.reportsTaskUnit}</Text>
                 </View>
               );
             })}
 
             {totalMonthlyTasks === 0 && (
-              <Text style={styles.emptyText}>本月暂无完成记录</Text>
+              <Text style={styles.emptyText}>{t.reportsNoMonthly}</Text>
             )}
 
             <TouchableOpacity style={styles.shareBtn} onPress={handleShare}>
-              <Text style={styles.shareBtnText}>分享本月报告</Text>
+              <Text style={styles.shareBtnText}>{t.reportsShareMonthly}</Text>
             </TouchableOpacity>
           </View>
         )}
 
-        {/* ── 积分榜 ── */}
-        {activeTab === '积分榜' && (
+        {/* ── Leaderboard ── */}
+        {activeTab === 'leaderboard' && (
           <View style={styles.section}>
             <Text style={styles.monthLabel}>{currentMonthLabel}</Text>
 
@@ -333,7 +342,7 @@ export default function ReportsScreen() {
                 const heights = [80, 60, 50];
                 return (
                   <View key={e.userId} style={[styles.podiumItem, i === 0 && styles.podiumFirst]}>
-                    <Text style={styles.podiumPoints}>{e.monthlyPoints} 积分</Text>
+                    <Text style={styles.podiumPoints}>{e.monthlyPoints} {t.reportsPointsUnit}</Text>
                     <Text style={styles.podiumName} numberOfLines={1}>{e.displayName}</Text>
                     <View style={[styles.podiumBar, { height: heights[i], backgroundColor: CHART_COLORS[i] }]}>
                       <Text style={styles.podiumMedal}>{medals[i]}</Text>
@@ -354,18 +363,18 @@ export default function ReportsScreen() {
                 <View style={styles.rankInfo}>
                   <Text style={styles.rankName}>{e.displayName}</Text>
                 </View>
-                <Text style={styles.rankPoints}>⭐ {e.monthlyPoints} 积分</Text>
+                <Text style={styles.rankPoints}>⭐ {e.monthlyPoints} {t.reportsPointsUnit}</Text>
               </View>
             ))}
-            {monthlyLeaderboard.length === 0 && <Text style={styles.emptyText}>暂无数据</Text>}
+            {monthlyLeaderboard.length === 0 && <Text style={styles.emptyText}>{t.reportsNoData}</Text>}
           </View>
         )}
 
-        {/* ── 趋势 ── */}
-        {activeTab === '趋势' && (
+        {/* ── Trends ── */}
+        {activeTab === 'trends' && (
           <View style={styles.section}>
             <View style={styles.chartCard}>
-              <Text style={styles.chartCardSub}>近7天完成任务数</Text>
+              <Text style={styles.chartCardSub}>{t.reportsTrend7Title}</Text>
               <LineChart
                 data={trendData.map(d => d.count)}
                 width={SCREEN_W - Spacing.lg * 2 - Spacing.lg * 2}
@@ -379,7 +388,7 @@ export default function ReportsScreen() {
             </View>
 
             <View style={styles.chartCard}>
-              <Text style={styles.chartCardSub}>近30天完成任务数</Text>
+              <Text style={styles.chartCardSub}>{t.reportsTrend30Title}</Text>
               <LineChart
                 data={trend30Data.map(d => d.count)}
                 width={SCREEN_W - Spacing.lg * 2 - Spacing.lg * 2}
@@ -400,15 +409,15 @@ export default function ReportsScreen() {
               return (
                 <View style={styles.insightRow}>
                   <View style={styles.insightCard}>
-                    <Text style={styles.insightText}>近7天完成</Text>
-                    <Text style={styles.insightNum}>{total7} 项</Text>
+                    <Text style={styles.insightText}>{t.reportsTrend7Label}</Text>
+                    <Text style={styles.insightNum}>{total7} {t.reportsTaskUnit}</Text>
                   </View>
                   <View style={styles.insightCard}>
-                    <Text style={styles.insightText}>近30天完成</Text>
-                    <Text style={styles.insightNum}>{total30} 项</Text>
+                    <Text style={styles.insightText}>{t.reportsTrend30Label}</Text>
+                    <Text style={styles.insightNum}>{total30} {t.reportsTaskUnit}</Text>
                   </View>
                   <View style={styles.insightCard}>
-                    <Text style={styles.insightText}>最活跃</Text>
+                    <Text style={styles.insightText}>{t.reportsMostActive}</Text>
                     <Text style={styles.insightNum}>{maxDay?.label ?? '-'}</Text>
                   </View>
                 </View>

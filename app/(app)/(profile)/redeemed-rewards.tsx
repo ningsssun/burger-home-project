@@ -13,8 +13,10 @@ import { useNavigation } from '@react-navigation/native';
 import { format } from 'date-fns';
 import { useRedemptions } from '@/features/rewards/hooks/useRewards';
 import { Colors, Spacing, Typography, BorderRadius } from '@/shared/constants/theme';
+import { useTranslation } from '@/shared/i18n';
 
 export default function RedeemedRewardsScreen() {
+  const t = useTranslation();
   const navigation = useNavigation();
   useFocusEffect(useCallback(() => {
     navigation.getParent()?.setOptions({ tabBarStyle: { display: 'none' } });
@@ -30,7 +32,7 @@ export default function RedeemedRewardsScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={24} color={Colors.ink} />
         </TouchableOpacity>
-        <Text style={styles.title}>已兑换奖励</Text>
+        <Text style={styles.title}>{t.redeemedTitle}</Text>
         <View style={styles.backBtn} />
       </View>
 
@@ -38,7 +40,7 @@ export default function RedeemedRewardsScreen() {
         {redemptions.length === 0 && !loading && (
           <View style={styles.empty}>
             <Text style={styles.emptyEmoji}>🎁</Text>
-            <Text style={styles.emptyText}>还没有兑换记录</Text>
+            <Text style={styles.emptyText}>{t.redeemedEmpty}</Text>
           </View>
         )}
 
@@ -48,11 +50,11 @@ export default function RedeemedRewardsScreen() {
             <View style={styles.info}>
               <Text style={styles.rewardTitle}>{r.rewardTitle}</Text>
               <Text style={styles.date}>
-                {r.redeemedAt ? format(r.redeemedAt.toDate(), 'yyyy年M月d日 HH:mm') : ''}
+                {r.redeemedAt ? format(r.redeemedAt.toDate(), t.redeemedDateFormat) : ''}
               </Text>
             </View>
             <View style={styles.costTag}>
-              <Text style={styles.costText}>-{r.pointsCost} 分</Text>
+              <Text style={styles.costText}>-{r.pointsCost} {t.reportsPointsUnit}</Text>
             </View>
           </View>
         ))}

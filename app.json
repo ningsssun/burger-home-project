@@ -23,6 +23,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.burgerhome.app",
+      "softwareKeyboardLayoutMode": "pan",
       "permissions": [
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE",

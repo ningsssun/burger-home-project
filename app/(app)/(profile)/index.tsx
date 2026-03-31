@@ -10,15 +10,20 @@ import {
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { format, getDay } from 'date-fns';
+import { getDay } from 'date-fns';
 import { useCurrentUser, useCurrentUserDoc } from '@/features/auth/hooks/useAuth';
 import { useSignOut } from '@/features/auth/hooks/useSignIn';
 import { useHouseholdMembers } from '@/features/household/hooks/useHousehold';
 import { useTasks } from '@/features/tasks/hooks/useTasks';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Spacing, Typography, BorderRadius } from '@/shared/constants/theme';
+import { useTranslation } from '@/shared/i18n';
+import { useLanguageStore } from '@/shared/store/languageStore';
+import { Language } from '@/shared/i18n/translations';
 
 export default function ProfileScreen() {
+  const t = useTranslation();
+  const { language, setLanguage } = useLanguageStore();
   const user = useCurrentUser();
   const userDoc = useCurrentUserDoc();
   const members = useHouseholdMembers();
@@ -31,36 +36,39 @@ export default function ProfileScreen() {
   const startOfThisMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
   const monthlyPoints = allTasks
-    .filter(t =>
-      t.status === 'completed' &&
-      t.completedBy === user?.uid &&
-      t.completedAt != null &&
-      t.completedAt.toDate() >= startOfThisMonth
+    .filter(task =>
+      task.status === 'completed' &&
+      task.completedBy === user?.uid &&
+      task.completedAt != null &&
+      task.completedAt.toDate() >= startOfThisMonth
     )
-    .reduce((s, t) => s + (t.points ?? 0), 0);
+    .reduce((s, task) => s + (task.points ?? 0), 0);
 
   const totalMonthlyPoints = members.reduce((sum, m) => {
     const mp = allTasks
-      .filter(t =>
-        t.status === 'completed' &&
-        t.completedBy === m.userId &&
-        t.completedAt != null &&
-        t.completedAt.toDate() >= startOfThisMonth
+      .filter(task =>
+        task.status === 'completed' &&
+        task.completedBy === m.userId &&
+        task.completedAt != null &&
+        task.completedAt.toDate() >= startOfThisMonth
       )
-      .reduce((s, t) => s + (t.points ?? 0), 0);
+      .reduce((s, task) => s + (task.points ?? 0), 0);
     return sum + mp;
   }, 0);
 
   const contributionPct = totalMonthlyPoints > 0
     ? Math.round((monthlyPoints / totalMonthlyPoints) * 100)
     : 0;
-  const displayName = userDoc?.displayName ?? user?.displayName ?? '用户';
+  const displayName = userDoc?.displayName ?? user?.displayName ?? '';
+
+  const now = new Date();
+  const dateLabel = t.profileDateLabel(now.getMonth() + 1, now.getDate(), getDay(now));
 
   const handleSignOut = () => {
-    Alert.alert('退出登录', '确定要退出吗？', [
-      { text: '取消', style: 'cancel' },
+    Alert.alert(t.profileSignOutTitle, t.profileSignOutMsg, [
+      { text: t.profileCancelBtn, style: 'cancel' },
       {
-        text: '退出',
+        text: t.profileSignOutBtn,
         style: 'destructive',
         onPress: async () => {
           await signOut();
@@ -70,20 +78,26 @@ export default function ProfileScreen() {
     ]);
   };
 
+  const LANGS: { key: Language; label: string }[] = [
+    { key: 'zh', label: t.langZh },
+    { key: 'ja', label: t.langJa },
+    { key: 'ko', label: t.langKo },
+  ];
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
         {/* ── Top bar ── */}
         <View style={styles.topBar}>
-          <Text style={styles.dateText}>{format(new Date(), 'M月d日')}，星期{['日','一','二','三','四','五','六'][getDay(new Date())]}</Text>
+          <Text style={styles.dateText}>{dateLabel}</Text>
           <TouchableOpacity onPress={handleSignOut} style={styles.iconBtn}>
             <Ionicons name="log-out-outline" size={22} color={Colors.slate} />
           </TouchableOpacity>
         </View>
 
         {/* ── Greeting ── */}
-        <Text style={styles.greeting}>你好，{'\n'}{displayName}</Text>
+        <Text style={styles.greeting}>{t.profileGreeting(displayName)}</Text>
 
         {/* ── Hero card (dark) ── */}
         <View style={styles.heroCard}>
@@ -96,7 +110,7 @@ export default function ProfileScreen() {
           />
           <View style={styles.heroCardBottom}>
             <View>
-              <Text style={styles.heroLabel}>本月积分</Text>
+              <Text style={styles.heroLabel}>{t.profileMonthlyPoints}</Text>
               <Text style={styles.heroValue}>{monthlyPoints}</Text>
             </View>
           </View>
@@ -106,7 +120,7 @@ export default function ProfileScreen() {
         <View style={styles.cardRow}>
           <View style={styles.smallCard}>
             <View style={styles.smallBlob} />
-            <Text style={styles.smallCardLabel}>贡献占比</Text>
+            <Text style={styles.smallCardLabel}>{t.profileContribution}</Text>
             <View style={styles.smallCardBottom}>
               <Text style={styles.smallCardValue}>{contributionPct}%</Text>
               <View style={styles.playBtn}>
@@ -117,7 +131,7 @@ export default function ProfileScreen() {
 
           <View style={[styles.smallCard, styles.smallCardAlt]}>
             <View style={[styles.smallBlob, styles.smallBlobAlt]} />
-            <Text style={styles.smallCardLabel}>累计积分</Text>
+            <Text style={styles.smallCardLabel}>{t.profileAllTime}</Text>
             <View style={styles.smallCardBottom}>
               <Text style={styles.smallCardValue}>{allTimePoints}</Text>
               <View style={styles.playBtn}>
@@ -133,7 +147,7 @@ export default function ProfileScreen() {
             style={styles.settingRow}
             onPress={() => router.push('/(app)/(profile)/household')}
           >
-            <Text style={styles.settingTitle}>家庭成员管理</Text>
+            <Text style={styles.settingTitle}>{t.profileMemberMgmt}</Text>
             <Ionicons name="chevron-forward" size={18} color={Colors.slate} />
           </TouchableOpacity>
           <View style={styles.divider} />
@@ -142,7 +156,7 @@ export default function ProfileScreen() {
             style={styles.settingRow}
             onPress={() => router.push('/(app)/(profile)/alarm-settings')}
           >
-            <Text style={styles.settingTitle}>闹钟设置</Text>
+            <Text style={styles.settingTitle}>{t.profileAlarmSettings}</Text>
             <Ionicons name="chevron-forward" size={18} color={Colors.slate} />
           </TouchableOpacity>
           <View style={styles.divider} />
@@ -151,9 +165,28 @@ export default function ProfileScreen() {
             style={styles.settingRow}
             onPress={() => router.push('/(app)/(profile)/redeemed-rewards')}
           >
-            <Text style={styles.settingTitle}>已兑换奖励</Text>
+            <Text style={styles.settingTitle}>{t.profileRedeemedRewards}</Text>
             <Ionicons name="chevron-forward" size={18} color={Colors.slate} />
           </TouchableOpacity>
+          <View style={styles.divider} />
+
+          {/* Language switcher */}
+          <View style={styles.settingRow}>
+            <Text style={styles.settingTitle}>{t.profileLanguage}</Text>
+            <View style={styles.langRow}>
+              {LANGS.map(({ key, label }) => (
+                <TouchableOpacity
+                  key={key}
+                  style={[styles.langBtn, language === key && styles.langBtnActive]}
+                  onPress={() => setLanguage(key)}
+                >
+                  <Text style={[styles.langBtnText, language === key && styles.langBtnTextActive]}>
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
         </View>
 
       </ScrollView>
@@ -290,4 +323,18 @@ const styles = StyleSheet.create({
     fontWeight: Typography.medium,
   },
   divider: { height: 1, backgroundColor: Colors.gray200 },
+
+  // Language switcher
+  langRow: { flexDirection: 'row', gap: 6 },
+  langBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 99,
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.gray200,
+  },
+  langBtnActive: { backgroundColor: Colors.ink, borderColor: Colors.ink },
+  langBtnText: { fontSize: Typography.xs, color: Colors.slate, fontWeight: Typography.medium },
+  langBtnTextActive: { color: Colors.white, fontWeight: Typography.semibold },
 });

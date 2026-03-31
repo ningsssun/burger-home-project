@@ -59,7 +59,7 @@ service cloud.firestore {
       allow delete: if isSignedIn() && isHouseholdAdmin(householdId);
 
       match /members/{memberId} {
-        allow read: if isSignedIn() && isHouseholdMember(householdId);
+        allow read: if isSignedIn() && getUserData().householdId == householdId;
         allow write: if isSignedIn() && (
           isOwner(memberId) || isHouseholdAdmin(householdId)
         );

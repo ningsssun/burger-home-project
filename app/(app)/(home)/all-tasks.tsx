@@ -18,6 +18,7 @@ import { useAssignTask } from '@/features/tasks/hooks/useAssignTask';
 import { useHouseholdMembers } from '@/features/household/hooks/useHousehold';
 import { Colors, Spacing, Typography, BorderRadius } from '@/shared/constants/theme';
 import { Task } from '@/shared/types/models';
+import { useTranslation } from '@/shared/i18n';
 
 const UNASSIGNED = '__unassigned__';
 
@@ -26,6 +27,7 @@ export default function AllTasksScreen() {
   const allTasks = useTasks();
   const members  = useHouseholdMembers();
   const assignTask = useAssignTask();
+  const t = useTranslation();
 
   const [filterMemberId, setFilterMemberId] = useState<string | null>(null);
   const [taskToAssign, setTaskToAssign] = useState<Task | null>(null);
@@ -63,7 +65,7 @@ export default function AllTasksScreen() {
     try {
       await assignTask(taskToAssign.id, member.userId, member.displayName);
     } catch {
-      Alert.alert('错误', '指定失败，请重试');
+      Alert.alert(t.error, t.allTasksErrAssign);
     }
   };
 
@@ -74,7 +76,7 @@ export default function AllTasksScreen() {
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={22} color={Colors.ink} />
         </TouchableOpacity>
-        <Text style={styles.title}>本周全家任务</Text>
+        <Text style={styles.title}>{t.allTasksTitle}</Text>
         <View style={styles.headerRight} />
       </View>
 
@@ -82,17 +84,17 @@ export default function AllTasksScreen() {
       <View style={styles.summaryRow}>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryNum}>{pendingTasks.length}</Text>
-          <Text style={styles.summaryLabel}>待完成</Text>
+          <Text style={styles.summaryLabel}>{t.homePending}</Text>
         </View>
         <View style={styles.summaryDivider} />
         <View style={styles.summaryItem}>
           <Text style={[styles.summaryNum, { color: Colors.slate }]}>{completedTasks.length}</Text>
-          <Text style={styles.summaryLabel}>已完成</Text>
+          <Text style={styles.summaryLabel}>{t.homeCompleted}</Text>
         </View>
         <View style={styles.summaryDivider} />
         <View style={styles.summaryItem}>
           <Text style={styles.summaryNum}>{members.length}</Text>
-          <Text style={styles.summaryLabel}>成员</Text>
+          <Text style={styles.summaryLabel}>{t.allTasksMembers}</Text>
         </View>
       </View>
 
@@ -102,13 +104,13 @@ export default function AllTasksScreen() {
           style={[styles.filterChip, !filterMemberId && styles.filterChipActive]}
           onPress={() => setFilterMemberId(null)}
         >
-          <Text style={[styles.filterChipText, !filterMemberId && styles.filterChipTextActive]}>全部</Text>
+          <Text style={[styles.filterChipText, !filterMemberId && styles.filterChipTextActive]}>{t.allTasksAll}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.filterChip, filterMemberId === UNASSIGNED && styles.filterChipActive]}
           onPress={() => setFilterMemberId(UNASSIGNED)}
         >
-          <Text style={[styles.filterChipText, filterMemberId === UNASSIGNED && styles.filterChipTextActive]}>未指定</Text>
+          <Text style={[styles.filterChipText, filterMemberId === UNASSIGNED && styles.filterChipTextActive]}>{t.allTasksUnassigned}</Text>
         </TouchableOpacity>
         {members.map(m => (
           <TouchableOpacity
@@ -127,7 +129,7 @@ export default function AllTasksScreen() {
         {/* Pending tasks */}
         {pendingTasks.length > 0 && (
           <>
-            <Text style={styles.sectionLabel}>未完成 · {pendingTasks.length}项</Text>
+            <Text style={styles.sectionLabel}>{t.allTasksPending(pendingTasks.length)}</Text>
             {pendingTasks.map(task => (
               <TaskCard key={task.id} task={task} onAssign={() => setTaskToAssign(task)} />
             ))}
@@ -137,7 +139,7 @@ export default function AllTasksScreen() {
         {/* Completed tasks */}
         {completedTasks.length > 0 && (
           <>
-            <Text style={[styles.sectionLabel, { marginTop: Spacing.md }]}>已完成 · {completedTasks.length}项</Text>
+            <Text style={[styles.sectionLabel, { marginTop: Spacing.md }]}>{t.allTasksCompleted(completedTasks.length)}</Text>
             {completedTasks.map(task => (
               <TaskCard key={task.id} task={task} onAssign={() => setTaskToAssign(task)} />
             ))}
@@ -147,7 +149,7 @@ export default function AllTasksScreen() {
         {filteredTasks.length === 0 && (
           <View style={styles.empty}>
             <Text style={styles.emptyEmoji}>🎉</Text>
-            <Text style={styles.emptyText}>暂无任务</Text>
+            <Text style={styles.emptyText}>{t.allTasksEmpty}</Text>
           </View>
         )}
       </ScrollView>
@@ -163,7 +165,7 @@ export default function AllTasksScreen() {
           <Pressable style={StyleSheet.absoluteFillObject} onPress={() => setTaskToAssign(null)} />
           <View style={styles.sheet}>
             <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>指定负责人</Text>
+            <Text style={styles.sheetTitle}>{t.allTasksAssignTitle}</Text>
             {taskToAssign && (
               <Text style={styles.sheetSubtitle} numberOfLines={1}>
                 {taskToAssign.title.replace(/^(\p{Emoji}\s?)/u, '')}
@@ -186,11 +188,12 @@ export default function AllTasksScreen() {
 }
 
 function TaskCard({ task, onAssign }: { task: Task; onAssign: () => void }) {
+  const t = useTranslation();
   const done      = task.status === 'completed';
   const emoji     = task.title.match(/^(\p{Emoji})/u)?.[1] ?? '📋';
   const rawTitle  = task.title.replace(/^(\p{Emoji}\s?)/u, '');
-  const dueStr    = task.dueDate ? format(task.dueDate.toDate(), 'M月d日') : null;
-  const doneStr   = task.completedAt ? format(task.completedAt.toDate(), 'M月d日') : null;
+  const dueStr    = task.dueDate ? format(task.dueDate.toDate(), t.dateMonthDay) : null;
+  const doneStr   = task.completedAt ? format(task.completedAt.toDate(), t.dateMonthDay) : null;
   const unassigned = !task.assigneeId;
 
   return (
@@ -207,14 +210,14 @@ function TaskCard({ task, onAssign }: { task: Task; onAssign: () => void }) {
             </View>
           ) : null}
           {!done && dueStr ? <Text style={styles.metaDate}>{dueStr}</Text> : null}
-          {done && doneStr ? <Text style={styles.metaDate}>完成 {doneStr}</Text> : null}
+          {done && doneStr ? <Text style={styles.metaDate}>{t.allTasksDone(doneStr)}</Text> : null}
           <Text style={styles.metaPoints}>⭐ {task.points}</Text>
         </View>
       </View>
       {unassigned && !done ? (
         <TouchableOpacity style={styles.assignBtn} onPress={onAssign}>
           <Ionicons name="person-add-outline" size={14} color={Colors.ink} />
-          <Text style={styles.assignBtnText}>指定</Text>
+          <Text style={styles.assignBtnText}>{t.allTasksAssign}</Text>
         </TouchableOpacity>
       ) : (
         <View style={[styles.statusDot, done && styles.statusDotDone]}>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -16,16 +16,20 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, Input } from '@/shared/components/ui';
 import { useSignIn } from '@/features/auth/hooks/useSignIn';
 import { Colors, Spacing, Typography } from '@/shared/constants/theme';
+import { useTranslation } from '@/shared/i18n';
 
-const schema = z.object({
-  email: z.string().email('请输入有效的邮箱地址'),
-  password: z.string().min(6, '密码至少需要6个字符'),
-});
-
-type FormData = z.infer<typeof schema>;
+type FormData = { email: string; password: string };
 
 export default function SignInScreen() {
   const signIn = useSignIn();
+  const t = useTranslation();
+
+  const schema = useMemo(() =>
+    z.object({
+      email: z.string().email(t.signInErrEmail),
+      password: z.string().min(6, t.signInErrPassword),
+    }),
+  [t]);
 
   const {
     control,
@@ -41,7 +45,7 @@ export default function SignInScreen() {
       await signIn(data.email, data.password);
       router.replace('/(app)/(home)');
     } catch {
-      Alert.alert('登录失败', '邮箱或密码不正确，请重试。');
+      Alert.alert(t.signInAlertTitle, t.signInAlertMsg);
     }
   };
 
@@ -54,25 +58,23 @@ export default function SignInScreen() {
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Header */}
         <View style={styles.header}>
           <Image
             source={require('../../assets/images/house-illustration.jpg')}
             style={styles.illustration}
             resizeMode="contain"
           />
-          <Text style={styles.title}>欢迎回来</Text>
-          <Text style={styles.subtitle}>登录你的家庭账户。</Text>
+          <Text style={styles.title}>{t.signInTitle}</Text>
+          <Text style={styles.subtitle}>{t.signInSubtitle}</Text>
         </View>
 
-        {/* Form */}
         <View style={styles.form}>
           <Controller
             control={control}
             name="email"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="邮箱"
+                label={t.signInEmail}
                 placeholder="you@example.com"
                 autoCapitalize="none"
                 keyboardType="email-address"
@@ -90,7 +92,7 @@ export default function SignInScreen() {
             name="password"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="密码"
+                label={t.signInPassword}
                 placeholder="••••••••"
                 secureTextEntry
                 autoComplete="password"
@@ -109,15 +111,14 @@ export default function SignInScreen() {
             size="lg"
             style={{ backgroundColor: Colors.ink }}
           >
-            登录
+            {t.signInBtn}
           </Button>
         </View>
 
-        {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>还没有账户？{' '}</Text>
+          <Text style={styles.footerText}>{t.signInNoAccount}{' '}</Text>
           <Link href="/(auth)/sign-up" asChild>
-            <Text style={styles.link}>注册</Text>
+            <Text style={styles.link}>{t.signInSignUpLink}</Text>
           </Link>
         </View>
       </ScrollView>

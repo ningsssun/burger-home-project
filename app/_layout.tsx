@@ -7,6 +7,7 @@ import { StyleSheet } from 'react-native';
 import { useAuthSubscription, useIsAuthenticated } from '@/features/auth/hooks/useAuth';
 import { useHouseholdSubscription } from '@/features/household/hooks/useHousehold';
 import { useCurrentUserDoc } from '@/features/auth/hooks/useAuth';
+import { useLanguageStore } from '@/shared/store/languageStore';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -22,6 +23,8 @@ const queryClient = new QueryClient({
 function AuthGate() {
   useAuthSubscription();
   useHouseholdSubscription();
+  const loadLanguage = useLanguageStore((s) => s.loadLanguage);
+  useEffect(() => { loadLanguage(); }, [loadLanguage]);
 
   const { isAuthenticated, isLoading } = useIsAuthenticated();
   const userDoc = useCurrentUserDoc();

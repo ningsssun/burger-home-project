@@ -17,8 +17,10 @@ import { useHousehold, useHouseholdMembers } from '@/features/household/hooks/us
 import { Avatar, Card } from '@/shared/components/ui';
 import { Colors, Spacing, Typography } from '@/shared/constants/theme';
 import { MemberDoc } from '@/shared/types/models';
+import { useTranslation } from '@/shared/i18n';
 
 export default function HouseholdScreen() {
+  const t = useTranslation();
   const navigation = useNavigation();
   useFocusEffect(useCallback(() => {
     navigation.getParent()?.setOptions({ tabBarStyle: { display: 'none' } });
@@ -31,13 +33,13 @@ export default function HouseholdScreen() {
   const copyInviteCode = async () => {
     if (!household?.inviteCode) return;
     await Clipboard.setStringAsync(household.inviteCode);
-    Alert.alert('已复制', `邀请码 ${household.inviteCode} 已复制到剪贴板`);
+    Alert.alert(t.householdCopiedTitle, t.householdCopiedMsg(household.inviteCode));
   };
 
   const shareInviteCode = async () => {
     if (!household?.inviteCode) return;
     await Share.share({
-      message: `加入我的家庭「${household.name}」，邀请码：${household.inviteCode}`,
+      message: t.householdShareMsg(household.name, household.inviteCode),
     });
   };
 
@@ -47,7 +49,7 @@ export default function HouseholdScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>家庭成员管理</Text>
+        <Text style={styles.headerTitle}>{t.householdTitle}</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -56,30 +58,30 @@ export default function HouseholdScreen() {
         <Card style={styles.nameCard}>
           <Text style={styles.emoji}>🏠</Text>
           <Text style={styles.householdName}>{household?.name}</Text>
-          <Text style={styles.memberCount}>{members.length} 位成员</Text>
+          <Text style={styles.memberCount}>{t.householdMemberCount(members.length)}</Text>
         </Card>
 
         {/* Invite code */}
         <Card>
-          <Text style={styles.sectionLabel}>邀请码</Text>
+          <Text style={styles.sectionLabel}>{t.householdInviteCode}</Text>
           <View style={styles.inviteCodeContainer}>
             <Text style={styles.inviteCode}>{household?.inviteCode}</Text>
           </View>
           <View style={styles.inviteActions}>
             <TouchableOpacity style={styles.inviteAction} onPress={copyInviteCode}>
               <Ionicons name="copy-outline" size={18} color={Colors.primary} />
-              <Text style={styles.inviteActionText}>复制</Text>
+              <Text style={styles.inviteActionText}>{t.householdCopy}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.inviteAction} onPress={shareInviteCode}>
               <Ionicons name="share-outline" size={18} color={Colors.primary} />
-              <Text style={styles.inviteActionText}>分享</Text>
+              <Text style={styles.inviteActionText}>{t.householdShare}</Text>
             </TouchableOpacity>
           </View>
         </Card>
 
         {/* Members list */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>成员列表</Text>
+          <Text style={styles.sectionTitle}>{t.householdMemberList}</Text>
         </View>
 
         {members.map((member) => (
@@ -91,7 +93,8 @@ export default function HouseholdScreen() {
 }
 
 function MemberRow({ member }: { member: MemberDoc & { id: string } }) {
-  const roleLabel = member.role === 'admin' ? '管理员' : '成员';
+  const t = useTranslation();
+  const roleLabel = member.role === 'admin' ? t.householdAdmin : t.householdMember;
 
   return (
     <Card style={styles.memberCard}>

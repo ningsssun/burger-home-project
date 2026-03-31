@@ -23,6 +23,7 @@ import {
 } from '@/features/lists/hooks/useLists';
 import { Colors, Spacing, Typography, BorderRadius } from '@/shared/constants/theme';
 import { ListItem } from '@/shared/types/models';
+import { useTranslation } from '@/shared/i18n';
 
 export default function SharedListScreen() {
   const { listId } = useLocalSearchParams<{ listId: string }>();
@@ -34,6 +35,7 @@ export default function SharedListScreen() {
   const deleteItem      = useDeleteListItem();
   const updateListStatus = useUpdateListStatus();
 
+  const t = useTranslation();
   const inputRef = useRef<TextInput>(null);
   const inputTextRef = useRef('');
 
@@ -58,14 +60,14 @@ export default function SharedListScreen() {
       inputTextRef.current = '';
       inputRef.current?.clear();
     } catch (err) {
-      Alert.alert('错误', err instanceof Error ? err.message : '添加失败');
+      Alert.alert(t.error, err instanceof Error ? err.message : t.add);
     }
   };
 
   const handleDelete = (item: ListItem) => {
-    Alert.alert('删除物品', `确定删除"${item.text}"？`, [
-      { text: '取消', style: 'cancel' },
-      { text: '删除', style: 'destructive', onPress: () => deleteItem(listId, item.id) },
+    Alert.alert(t.listDetailDeleteTitle, t.listDetailDeleteConfirm(item.text), [
+      { text: t.cancel, style: 'cancel' },
+      { text: t.delete, style: 'destructive', onPress: () => deleteItem(listId, item.id) },
     ]);
   };
 
@@ -83,7 +85,7 @@ export default function SharedListScreen() {
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={22} color={Colors.ink} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>{list?.title ?? '清单'}</Text>
+        <Text style={styles.headerTitle} numberOfLines={1}>{list?.title ?? t.listDetailDefault}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -106,7 +108,7 @@ export default function SharedListScreen() {
           if (item.id === '__divider__') {
             return (
               <View style={styles.divider}>
-                <Text style={styles.dividerText}>已勾选 · {checked.length}</Text>
+                <Text style={styles.dividerText}>{t.listDetailChecked(checked.length)}</Text>
               </View>
             );
           }

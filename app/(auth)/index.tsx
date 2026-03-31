@@ -10,10 +10,37 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Typography } from '@/shared/constants/theme';
+import { useTranslation } from '@/shared/i18n';
+import { useLanguageStore } from '@/shared/store/languageStore';
+import { Language } from '@/shared/i18n/translations';
 
 export default function WelcomeScreen() {
+  const t = useTranslation();
+  const { language, setLanguage } = useLanguageStore();
+
+  const LANGS: { key: Language; label: string }[] = [
+    { key: 'zh', label: '中文' },
+    { key: 'ja', label: '日本語' },
+    { key: 'ko', label: '한국어' },
+  ];
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      {/* Language switcher */}
+      <View style={styles.langBar}>
+        {LANGS.map(({ key, label }) => (
+          <TouchableOpacity
+            key={key}
+            style={[styles.langBtn, language === key && styles.langBtnActive]}
+            onPress={() => setLanguage(key)}
+          >
+            <Text style={[styles.langBtnText, language === key && styles.langBtnTextActive]}>
+              {label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       {/* Illustration area */}
       <View style={styles.illustrationArea}>
         <Image
@@ -25,23 +52,23 @@ export default function WelcomeScreen() {
 
       {/* Bottom area */}
       <View style={styles.bottomArea}>
-        <Text style={styles.slogan}>家的温度{'\n'}一起守护</Text>
+        <Text style={styles.slogan}>{t.welcomeSlogan}</Text>
 
         <TouchableOpacity
           style={styles.startBtn}
           onPress={() => router.push('/(auth)/sign-up')}
           activeOpacity={0.85}
         >
-          <Text style={styles.startBtnText}>开始</Text>
+          <Text style={styles.startBtnText}>{t.welcomeStart}</Text>
           <View style={styles.arrowCircle}>
             <Ionicons name="arrow-forward" size={22} color={Colors.ink} />
           </View>
         </TouchableOpacity>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>已有账户？</Text>
+          <Text style={styles.footerText}>{t.welcomeHasAccount}</Text>
           <TouchableOpacity onPress={() => router.push('/(auth)/sign-in')}>
-            <Text style={styles.footerLink}>登录</Text>
+            <Text style={styles.footerLink}>{t.welcomeSignIn}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -119,4 +146,21 @@ const styles = StyleSheet.create({
     fontWeight: Typography.bold,
     color: Colors.ink,
   },
+
+  langBar: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    paddingTop: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+  },
+  langBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 99,
+    backgroundColor: Colors.lightBg,
+  },
+  langBtnActive: { backgroundColor: Colors.ink },
+  langBtnText: { fontSize: Typography.sm, color: Colors.slate, fontWeight: Typography.medium },
+  langBtnTextActive: { color: Colors.white, fontWeight: Typography.semibold },
 });

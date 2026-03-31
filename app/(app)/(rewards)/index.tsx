@@ -16,10 +16,12 @@ import { useRewards, useCreateReward, useRedeemReward, useDeleteReward } from '@
 import { useCurrentUser } from '@/features/auth/hooks/useAuth';
 import { useHouseholdMembers } from '@/features/household/hooks/useHousehold';
 import { Colors, Spacing, Typography, BorderRadius } from '@/shared/constants/theme';
+import { useTranslation } from '@/shared/i18n';
 
 const REWARD_EMOJIS = ['🎁', '🍕', '🎮', '🎬', '☕', '🛍️', '✈️', '🎂', '🏖️', '🎤'];
 
 export default function RewardsScreen() {
+  const t = useTranslation();
   const { rewards, loading } = useRewards();
   const createReward = useCreateReward();
   const redeemReward = useRedeemReward();
@@ -52,34 +54,34 @@ export default function RewardsScreen() {
       setSelectedEmoji('🎁');
       setShowModal(false);
     } catch (err) {
-      Alert.alert('错误', err instanceof Error ? err.message : '创建失败');
+      Alert.alert(t.error, err instanceof Error ? err.message : t.create);
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDelete = (rewardId: string, title: string) => {
-    Alert.alert('删除奖励', `确定删除"${title}"？`, [
-      { text: '取消', style: 'cancel' },
-      { text: '删除', style: 'destructive', onPress: () => deleteReward(rewardId) },
+    Alert.alert(t.rewardsDeleteTitle, t.rewardsDeleteConfirm(title), [
+      { text: t.cancel, style: 'cancel' },
+      { text: t.delete, style: 'destructive', onPress: () => deleteReward(rewardId) },
     ]);
   };
 
   const handleRedeem = (reward: { id: string; pointsCost: number; title: string; emoji: string }) => {
     if (myPoints < reward.pointsCost) {
-      Alert.alert('积分不足', `兑换"${reward.title}"需要 ${reward.pointsCost} 积分，你当前有 ${myPoints} 积分`);
+      Alert.alert(t.rewardsInsufficientTitle, t.rewardsInsufficientMsg(reward.title, reward.pointsCost, myPoints));
       return;
     }
-    Alert.alert('兑换奖励', `确定用 ${reward.pointsCost} 积分兑换"${reward.title}"？`, [
-      { text: '取消', style: 'cancel' },
+    Alert.alert(t.rewardsRedeemTitle, t.rewardsRedeemConfirm(reward.pointsCost, reward.title), [
+      { text: t.cancel, style: 'cancel' },
       {
-        text: '确定',
+        text: t.confirm,
         onPress: async () => {
           try {
             await redeemReward(reward.pointsCost, reward.id, reward.title, reward.emoji);
-            Alert.alert('成功', `已兑换"${reward.title}"！`);
+            Alert.alert(t.rewardsSuccessTitle, t.rewardsSuccessMsg(reward.title));
           } catch (err) {
-            Alert.alert('错误', err instanceof Error ? err.message : '兑换失败');
+            Alert.alert(t.error, err instanceof Error ? err.message : t.rewardsRedeemFailed);
           }
         },
       },
@@ -91,7 +93,7 @@ export default function RewardsScreen() {
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>我的奖励</Text>
+          <Text style={styles.title}>{t.rewardsTitle}</Text>
           <TouchableOpacity style={styles.addCircle} onPress={() => setShowModal(true)}>
             <Ionicons name="add" size={22} color={Colors.white} />
           </TouchableOpacity>
@@ -100,9 +102,9 @@ export default function RewardsScreen() {
         {/* Points card */}
         <View style={styles.pointsCard}>
           <View style={styles.pointsTop}>
-<View>
-              <Text style={styles.pointsLabel}>本周积分</Text>
-              <Text style={styles.pointsSubLabel}>继续完成任务赚积分</Text>
+            <View>
+              <Text style={styles.pointsLabel}>{t.rewardsMyPoints}</Text>
+              <Text style={styles.pointsSubLabel}>{t.rewardsEarnHint}</Text>
             </View>
           </View>
           <Text style={styles.pointsValue}>{myPoints}</Text>
@@ -112,24 +114,24 @@ export default function RewardsScreen() {
         {nextReward && (
           <View style={styles.progressSection}>
             <Text style={styles.progressLabel}>
-              距下个奖励 · {nextReward.emoji} {nextReward.title}
+              {t.rewardsNextReward(nextReward.emoji, nextReward.title)}
             </Text>
             <View style={styles.progressTrack}>
               <View style={[styles.progressFill, { width: `${progressPct * 100}%` }]} />
             </View>
             <Text style={styles.progressText}>
-              {myPoints} / {nextReward.pointsCost} 积分
+              {t.rewardsProgress(myPoints, nextReward.pointsCost)}
             </Text>
           </View>
         )}
 
         {/* Rewards list */}
-        <Text style={styles.sectionLabel}>兑换奖励</Text>
+        <Text style={styles.sectionLabel}>{t.rewardsSection}</Text>
 
         {rewards.length === 0 && !loading && (
           <View style={styles.empty}>
             <Text style={styles.emptyEmoji}>🎁</Text>
-            <Text style={styles.emptyText}>还没有奖励，点击 + 添加</Text>
+            <Text style={styles.emptyText}>{t.rewardsEmpty}</Text>
           </View>
         )}
 
@@ -140,13 +142,13 @@ export default function RewardsScreen() {
               <Text style={styles.rewardEmoji}>{reward.emoji}</Text>
               <View style={styles.rewardInfo}>
                 <Text style={styles.rewardTitle}>{reward.title}</Text>
-                <Text style={styles.rewardCost}>需 {reward.pointsCost} 积分</Text>
+                <Text style={styles.rewardCost}>{t.rewardsCost(reward.pointsCost)}</Text>
               </View>
               <TouchableOpacity
                 style={[styles.redeemTag, !affordable && styles.redeemTagDisabled]}
                 onPress={() => handleRedeem(reward)}
               >
-                <Text style={styles.redeemTagText}>兑换</Text>
+                <Text style={styles.redeemTagText}>{t.rewardsRedeem}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => handleDelete(reward.id, reward.title)}
@@ -170,14 +172,14 @@ export default function RewardsScreen() {
           <Pressable style={StyleSheet.absoluteFillObject} onPress={() => setShowModal(false)} />
           <View style={styles.bottomSheet}>
             <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>添加奖励</Text>
+            <Text style={styles.sheetTitle}>{t.rewardsAddTitle}</Text>
 
             <TextInput
               key={inputKey}
               style={styles.input}
-              placeholder="奖励名称"
+              placeholder={t.rewardsNamePlaceholder}
               placeholderTextColor={Colors.slate}
-              onChangeText={t => { rewardTitleRef.current = t; }}
+              onChangeText={v => { rewardTitleRef.current = v; }}
               returnKeyType="done"
             />
 
@@ -195,7 +197,7 @@ export default function RewardsScreen() {
             </ScrollView>
 
             {/* Points cost stepper */}
-            <Text style={styles.sectionLabel}>所需积分</Text>
+            <Text style={styles.sectionLabel}>{t.rewardsPointsLabel}</Text>
             <View style={styles.stepper}>
               <TouchableOpacity
                 style={styles.stepBtn}
@@ -217,7 +219,7 @@ export default function RewardsScreen() {
               onPress={handleCreate}
               disabled={submitting}
             >
-              <Text style={styles.submitBtnText}>添加</Text>
+              <Text style={styles.submitBtnText}>{t.rewardsAddBtn}</Text>
             </TouchableOpacity>
           </View>
         </View>

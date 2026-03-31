@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -18,24 +18,25 @@ import { Button, Input } from '@/shared/components/ui';
 import { useCreateHousehold } from '@/features/household/hooks/useCreateHousehold';
 import { useJoinHousehold } from '@/features/household/hooks/useJoinHousehold';
 import { Colors, Spacing, Typography, BorderRadius } from '@/shared/constants/theme';
+import { useTranslation } from '@/shared/i18n';
 
 type Mode = 'choose' | 'create' | 'join';
-
-const createSchema = z.object({
-  name: z.string().min(2, '家庭名称至少需要2个字符'),
-});
-
-const joinSchema = z.object({
-  inviteCode: z.string().length(6, '邀请码必须是6位字符'),
-});
-
-type CreateFormData = z.infer<typeof createSchema>;
-type JoinFormData = z.infer<typeof joinSchema>;
+type CreateFormData = { name: string };
+type JoinFormData = { inviteCode: string };
 
 export default function JoinHouseholdScreen() {
   const [mode, setMode] = useState<Mode>('choose');
   const createHousehold = useCreateHousehold();
   const joinHousehold = useJoinHousehold();
+  const t = useTranslation();
+
+  const createSchema = useMemo(() =>
+    z.object({ name: z.string().min(2, t.joinErrNameMin) }),
+  [t]);
+
+  const joinSchema = useMemo(() =>
+    z.object({ inviteCode: z.string().length(6, t.joinErrCodeLength) }),
+  [t]);
 
   const createForm = useForm<CreateFormData>({
     resolver: zodResolver(createSchema),
@@ -52,7 +53,7 @@ export default function JoinHouseholdScreen() {
       await createHousehold(data.name);
       router.replace('/(app)/(home)');
     } catch (err) {
-      Alert.alert('错误', err instanceof Error ? err.message : '创建家庭失败');
+      Alert.alert(t.joinErrTitle, err instanceof Error ? err.message : t.joinCreateFailed);
     }
   };
 
@@ -61,7 +62,7 @@ export default function JoinHouseholdScreen() {
       await joinHousehold(data.inviteCode);
       router.replace('/(app)/(home)');
     } catch (err) {
-      Alert.alert('错误', err instanceof Error ? err.message : '加入家庭失败');
+      Alert.alert(t.joinErrTitle, err instanceof Error ? err.message : t.joinJoinFailed);
     }
   };
 
@@ -69,23 +70,21 @@ export default function JoinHouseholdScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.header}>
-          <Text style={styles.title}>你的家庭</Text>
-          <Text style={styles.subtitle}>
-            创建新家庭，或使用邀请码加入已有家庭。
-          </Text>
+          <Text style={styles.title}>{t.joinTitle}</Text>
+          <Text style={styles.subtitle}>{t.joinSubtitle}</Text>
         </View>
 
         <View style={styles.choices}>
           <TouchableOpacity style={styles.choiceCard} onPress={() => setMode('create')}>
             <Text style={styles.choiceEmoji}>🏠</Text>
-            <Text style={styles.choiceTitle}>创建家庭</Text>
-            <Text style={styles.choiceDesc}>创建一个全新的共享空间</Text>
+            <Text style={styles.choiceTitle}>{t.joinCreateTitle}</Text>
+            <Text style={styles.choiceDesc}>{t.joinCreateDesc}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.choiceCard} onPress={() => setMode('join')}>
             <Text style={styles.choiceEmoji}>🔑</Text>
-            <Text style={styles.choiceTitle}>加入家庭</Text>
-            <Text style={styles.choiceDesc}>输入家庭成员发送的邀请码</Text>
+            <Text style={styles.choiceTitle}>{t.joinJoinTitle}</Text>
+            <Text style={styles.choiceDesc}>{t.joinJoinDesc}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -100,7 +99,7 @@ export default function JoinHouseholdScreen() {
       >
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <View style={styles.header}>
-            <Text style={styles.title}>创建家庭</Text>
+            <Text style={styles.title}>{t.joinCreateTitle}</Text>
           </View>
 
           <View style={styles.form}>
@@ -109,8 +108,8 @@ export default function JoinHouseholdScreen() {
               name="name"
               render={({ field: { onChange, onBlur, value } }) => (
                 <Input
-                  label="家庭名称"
-                  placeholder="我们的小家"
+                  label={t.joinNameLabel}
+                  placeholder={t.joinNamePlaceholder}
                   autoCapitalize="words"
                   onChangeText={onChange}
                   onBlur={onBlur}
@@ -126,10 +125,10 @@ export default function JoinHouseholdScreen() {
               size="lg"
               style={{ backgroundColor: Colors.ink }}
             >
-              创建家庭
+              {t.joinCreateBtn}
             </Button>
             <Button variant="ghost" onPress={() => setMode('choose')} fullWidth>
-              返回
+              {t.joinBack}
             </Button>
           </View>
         </ScrollView>
@@ -144,7 +143,7 @@ export default function JoinHouseholdScreen() {
     >
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
-          <Text style={styles.title}>加入家庭</Text>
+          <Text style={styles.title}>{t.joinJoinTitle}</Text>
         </View>
 
         <View style={styles.form}>
@@ -153,8 +152,8 @@ export default function JoinHouseholdScreen() {
             name="inviteCode"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="邀请码"
-                placeholder="ABC123"
+                label={t.joinCodeLabel}
+                placeholder={t.joinCodePlaceholder}
                 autoCapitalize="characters"
                 maxLength={6}
                 onChangeText={(text) => onChange(text.toUpperCase())}
@@ -171,10 +170,10 @@ export default function JoinHouseholdScreen() {
             size="lg"
             style={{ backgroundColor: Colors.ink }}
           >
-            加入家庭
+            {t.joinJoinBtn}
           </Button>
           <Button variant="ghost" onPress={() => setMode('choose')} fullWidth>
-            返回
+            {t.joinBack}
           </Button>
         </View>
       </ScrollView>
@@ -198,9 +197,6 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
     paddingTop: Spacing.xxl,
     paddingHorizontal: Spacing.xl,
-  },
-  emoji: {
-    fontSize: 64,
   },
   title: {
     fontSize: Typography['3xl'],

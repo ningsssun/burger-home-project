@@ -37,9 +37,9 @@ import { useHouseholdMembers } from '@/features/household/hooks/useHousehold';
 import { Colors, Spacing, Typography, BorderRadius } from '@/shared/constants/theme';
 import { Task } from '@/shared/types/models';
 import { APP_CONFIG } from '@/shared/constants/config';
+import { useTranslation } from '@/shared/i18n';
 
 const EMOJIS = ['🏠', '🧹', '🍳', '🛒', '👕', '🔧', '📋', '🌿', '🐾', '✨'];
-const WEEK_LABELS = ['一', '二', '三', '四', '五', '六', '日'];
 const COLLAPSED_H = 150;
 const EXPANDED_H  = 420;
 
@@ -53,6 +53,7 @@ function getMonthGrid(month: Date): Date[][] {
 }
 
 export default function HomeScreen() {
+  const t = useTranslation();
 
   const insets = useSafeAreaInsets();
   const user         = useCurrentUser();
@@ -113,9 +114,9 @@ export default function HomeScreen() {
   }, [snapCalendar]);
 
   // ─── Task filtering ───────────────────────────────────────────
-  // CASA only shows tasks assigned to the current user
+  // Show tasks assigned to me OR created by me
   const myTasks = useMemo(
-    () => allTasks.filter(t => t.assigneeId === user?.uid),
+    () => allTasks.filter(t => t.assigneeId === user?.uid || t.createdBy === user?.uid),
     [allTasks, user],
   );
 
@@ -146,8 +147,8 @@ export default function HomeScreen() {
   // ─── Handlers ─────────────────────────────────────────────────
   const handleComplete = useCallback(async (task: Task) => {
     try { await completeTask(task); }
-    catch (err) { Alert.alert('错误', err instanceof Error ? err.message : '操作失败'); }
-  }, [completeTask]);
+    catch (err) { Alert.alert(t.error, err instanceof Error ? err.message : t.homeErrComplete); }
+  }, [completeTask, t]);
 
   const openModal = () => {
     taskTitleRef.current = '';
@@ -181,7 +182,7 @@ export default function HomeScreen() {
       setTaskPoints(APP_CONFIG.DEFAULT_TASK_POINTS);
       setShowModal(false);
     } catch (err) {
-      Alert.alert('错误', err instanceof Error ? err.message : '创建失败');
+      Alert.alert(t.error, err instanceof Error ? err.message : t.homeErrCreate);
     } finally {
       setSubmitting(false);
     }
@@ -222,9 +223,9 @@ export default function HomeScreen() {
       <View style={styles.summaryCard}>
         <View style={styles.summaryLeft}>
           <View>
-            <Text style={styles.summaryTitle}>今日任务</Text>
+            <Text style={styles.summaryTitle}>{t.homeTodayTasks}</Text>
             <Text style={styles.summarySubtitle}>
-              {pendingTasks.length} 待完成 · {completedTasks.length} 已完成
+              {pendingTasks.length} {t.homePending} · {completedTasks.length} {t.homeCompleted}
             </Text>
           </View>
         </View>
@@ -248,7 +249,7 @@ export default function HomeScreen() {
         {selectedDateTasks.length === 0 && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyEmoji}>🎉</Text>
-            <Text style={styles.emptyText}>{isToday ? '今天没有任务！' : '这天没有任务'}</Text>
+            <Text style={styles.emptyText}>{isToday ? t.homeNoTasksToday : t.homeNoTasksDay}</Text>
           </View>
         )}
       </ScrollView>
@@ -263,16 +264,16 @@ export default function HomeScreen() {
                 <TouchableOpacity style={styles.navBtn} onPress={() => setCalendarMonth(m => subMonths(m, 1))}>
                   <Ionicons name="chevron-back" size={18} color={Colors.white} />
                 </TouchableOpacity>
-                <Text style={styles.monthText}>{format(calendarMonth, 'yyyy年M月')}</Text>
+                <Text style={styles.monthText}>{format(calendarMonth, t.dateYearMonth)}</Text>
                 <TouchableOpacity style={styles.navBtn} onPress={() => setCalendarMonth(m => addMonths(m, 1))}>
                   <Ionicons name="chevron-forward" size={18} color={Colors.white} />
                 </TouchableOpacity>
               </>
             ) : (
               <>
-                <Text style={styles.monthText}>{format(selectedDate, 'yyyy年M月d日')}</Text>
+                <Text style={styles.monthText}>{format(selectedDate, t.dateFull)}</Text>
                 <TouchableOpacity style={styles.todayChip} onPress={() => handleDatePress(new Date())}>
-                  <Text style={styles.todayChipText}>今天</Text>
+                  <Text style={styles.todayChipText}>{t.homeToday}</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -280,7 +281,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.weekLabelRow}>
-          {WEEK_LABELS.map(l => <Text key={l} style={styles.weekLabel}>{l}</Text>)}
+          {t.homeWeekLabels.map((l, i) => <Text key={i} style={styles.weekLabel}>{l}</Text>)}
         </View>
 
         {/* Collapsed: week containing selectedDate */}
@@ -322,7 +323,7 @@ export default function HomeScreen() {
               </View>
             ))}
             <TouchableOpacity style={styles.backBtn} onPress={() => { handleDatePress(new Date()); setCalendarMonth(new Date()); }}>
-              <Text style={styles.backBtnText}>回到今天</Text>
+              <Text style={styles.backBtnText}>{t.homeBackToToday}</Text>
             </TouchableOpacity>
           </ScrollView>
         )}
@@ -335,13 +336,13 @@ export default function HomeScreen() {
           <Pressable style={StyleSheet.absoluteFillObject} onPress={() => setShowModal(false)} />
           <View style={styles.sheet}>
             <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>添加任务</Text>
+            <Text style={styles.sheetTitle}>{t.homeAddTask}</Text>
 
             <TextInput
               ref={inputRef}
               key={inputKey}
               style={styles.input}
-              placeholder="任务名称"
+              placeholder={t.homeTaskName}
               placeholderTextColor={Colors.slate}
               onChangeText={t => { taskTitleRef.current = t; }}
               returnKeyType="done"
@@ -358,10 +359,10 @@ export default function HomeScreen() {
             </ScrollView>
 
             {/* Assignee */}
-            <Text style={styles.sectionLabel}>负责人</Text>
+            <Text style={styles.sectionLabel}>{t.homeAssignee}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
               <TouchableOpacity style={[styles.chip, !selectedAssigneeId && styles.chipActive]} onPress={() => setSelectedAssigneeId(null)}>
-                <Text style={[styles.chipText, !selectedAssigneeId && styles.chipTextActive]}>不指定</Text>
+                <Text style={[styles.chipText, !selectedAssigneeId && styles.chipTextActive]}>{t.homeNoAssignee}</Text>
               </TouchableOpacity>
               {members.map(m => (
                 <TouchableOpacity key={m.userId} style={[styles.chip, selectedAssigneeId === m.userId && styles.chipActive]} onPress={() => setSelectedAssigneeId(m.userId)}>
@@ -371,31 +372,31 @@ export default function HomeScreen() {
             </ScrollView>
 
             {/* Date picker */}
-            <Text style={styles.sectionLabel}>任务日期</Text>
+            <Text style={styles.sectionLabel}>{t.homeTaskDate}</Text>
             <View style={styles.datePicker}>
               <TouchableOpacity style={styles.dateArrowBtn} onPress={() => setModalDate(d => subDays(d, 1))}>
                 <Ionicons name="chevron-back" size={18} color={Colors.ink} />
               </TouchableOpacity>
-              <Text style={styles.dateText}>{format(modalDate, 'M月d日')}</Text>
+              <Text style={styles.dateText}>{format(modalDate, t.dateMonthDay)}</Text>
               <TouchableOpacity style={styles.dateArrowBtn} onPress={() => setModalDate(d => addDays(d, 1))}>
                 <Ionicons name="chevron-forward" size={18} color={Colors.ink} />
               </TouchableOpacity>
             </View>
 
             {/* Points stepper */}
-            <Text style={styles.sectionLabel}>奖励积分</Text>
+            <Text style={styles.sectionLabel}>{t.homeRewardPointsLabel}</Text>
             <View style={styles.stepper}>
               <TouchableOpacity style={styles.stepBtn} onPress={() => setTaskPoints(p => Math.max(5, p - 5))}>
                 <Ionicons name="remove" size={18} color={Colors.ink} />
               </TouchableOpacity>
-              <Text style={styles.stepValue}>{taskPoints} 积分</Text>
+              <Text style={styles.stepValue}>{t.homePoints(taskPoints)}</Text>
               <TouchableOpacity style={styles.stepBtn} onPress={() => setTaskPoints(p => p + 5)}>
                 <Ionicons name="add" size={18} color={Colors.ink} />
               </TouchableOpacity>
             </View>
 
             <TouchableOpacity style={[styles.submitBtn, submitting && styles.submitBtnDisabled]} onPress={handleAddTask} disabled={submitting}>
-              <Text style={styles.submitBtnText}>添加</Text>
+              <Text style={styles.submitBtnText}>{t.homeAddBtn}</Text>
             </TouchableOpacity>
           </View>
         </View>

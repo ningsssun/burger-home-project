@@ -22,20 +22,9 @@ import { useCurrentUser } from '@/features/auth/hooks/useAuth';
 import { useDeleteTask } from '@/features/tasks/hooks/useDeleteTask';
 import { Colors, Spacing, Typography, BorderRadius } from '@/shared/constants/theme';
 import { Task } from '@/shared/types/models';
+import { useTranslation } from '@/shared/i18n';
 
 type AlarmFrequency = 'today' | 'week' | 'daily';
-
-const FREQ_OPTIONS: { key: AlarmFrequency; label: string }[] = [
-  { key: 'today', label: '只今天' },
-  { key: 'week',  label: '本周每天' },
-  { key: 'daily', label: '每天' },
-];
-
-const FREQ_DISPLAY: Record<AlarmFrequency, string> = {
-  today: '今天',
-  week:  '本周每天',
-  daily: '每天',
-};
 
 interface Alarm {
   taskId: string;
@@ -46,11 +35,24 @@ interface Alarm {
 }
 
 export default function AlarmSettingsScreen() {
+  const t = useTranslation();
   const navigation = useNavigation();
   useFocusEffect(useCallback(() => {
     navigation.getParent()?.setOptions({ tabBarStyle: { display: 'none' } });
     return () => navigation.getParent()?.setOptions({ tabBarStyle: undefined });
   }, [navigation]));
+
+  const FREQ_OPTIONS: { key: AlarmFrequency; label: string }[] = [
+    { key: 'today', label: t.alarmTodayOnly },
+    { key: 'week',  label: t.alarmThisWeek },
+    { key: 'daily', label: t.alarmDaily },
+  ];
+
+  const FREQ_DISPLAY: Record<AlarmFrequency, string> = {
+    today: t.alarmTodayOnly,
+    week:  t.alarmThisWeek,
+    daily: t.alarmDaily,
+  };
 
   const household = useHousehold();
   const user = useCurrentUser();
@@ -87,7 +89,7 @@ export default function AlarmSettingsScreen() {
     const unsub = onSnapshot(q, snap => {
       const tasks = snap.docs
         .map(d => ({ id: d.id, ...d.data() }) as Task)
-        .filter(t => t.status === 'pending' && t.assigneeId === user.uid);
+        .filter(task => task.status === 'pending' && task.assigneeId === user.uid);
       setPendingTasks(tasks);
     });
     return unsub;
@@ -95,7 +97,7 @@ export default function AlarmSettingsScreen() {
 
   // Cancel alarms for tasks that are no longer pending
   useEffect(() => {
-    const pendingIds = new Set(pendingTasks.map(t => t.id));
+    const pendingIds = new Set(pendingTasks.map(task => task.id));
     alarms.forEach(async alarm => {
       if (!pendingIds.has(alarm.taskId)) {
         for (const id of alarm.notificationIds) {
@@ -148,7 +150,7 @@ export default function AlarmSettingsScreen() {
       }
     }
 
-    const content = { title: '任务提醒', body: task.title, data: { taskId: task.id } };
+    const content = { title: t.alarmNotifTitle, body: task.title, data: { taskId: task.id } };
     const notificationIds: string[] = [];
 
     if (freq === 'daily') {
@@ -162,7 +164,7 @@ export default function AlarmSettingsScreen() {
       const target = new Date();
       target.setHours(hour, minute, 0, 0);
       if (target <= new Date()) {
-        Alert.alert('提示', '该时间今天已过，请选择稍后的时间');
+        Alert.alert(t.alarmTimePassedTitle, t.alarmTimePassedMsg);
         return;
       }
       const id = await Notifications.scheduleNotificationAsync({
@@ -191,7 +193,7 @@ export default function AlarmSettingsScreen() {
         notificationIds.push(id);
       }
       if (notificationIds.length === 0) {
-        Alert.alert('提示', '本周剩余时间已过');
+        Alert.alert(t.alarmWeekPassedTitle, t.alarmWeekPassedMsg);
         return;
       }
     }
@@ -202,13 +204,13 @@ export default function AlarmSettingsScreen() {
     ]);
 
     const timeStr = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
-    Alert.alert('闹钟已设置', `将在${FREQ_DISPLAY[freq]} ${timeStr} 提醒你完成「${task.title}」`);
+    Alert.alert(t.alarmSetTitle, t.alarmSetMsg(FREQ_DISPLAY[freq], timeStr, task.title));
   };
 
   const handleDeleteTask = (taskId: string, title: string) => {
-    Alert.alert('删除任务', `确定删除「${rawTitle(title)}」？`, [
-      { text: '取消', style: 'cancel' },
-      { text: '删除', style: 'destructive', onPress: async () => {
+    Alert.alert(t.alarmDeleteTitle, t.alarmDeleteConfirm(rawTitle(title)), [
+      { text: t.alarmCancelBtn, style: 'cancel' },
+      { text: t.delete, style: 'destructive', onPress: async () => {
         await removeAlarm(taskId);
         await deleteTask(taskId);
       }},
@@ -252,17 +254,17 @@ export default function AlarmSettingsScreen() {
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={24} color={Colors.ink} />
         </TouchableOpacity>
-        <Text style={styles.title}>闹钟设置</Text>
+        <Text style={styles.title}>{t.alarmTitle}</Text>
         <View style={styles.backBtn} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Text style={styles.hint}>为分配给你的家务设置闹钟</Text>
+        <Text style={styles.hint}>{t.alarmHint}</Text>
 
         {pendingTasks.length === 0 && (
           <View style={styles.empty}>
             <Text style={styles.emptyEmoji}>⏰</Text>
-            <Text style={styles.emptyText}>没有分配给你的待完成任务</Text>
+            <Text style={styles.emptyText}>{t.alarmNoTasks}</Text>
           </View>
         )}
 
@@ -275,25 +277,25 @@ export default function AlarmSettingsScreen() {
               <View style={styles.taskInfo}>
                 <Text style={styles.taskTitle} numberOfLines={1}>{rawTitle(task.title)}</Text>
                 {alarmLabel ? (
-                  <Text style={styles.alarmTime}>{alarmLabel} 提醒</Text>
+                  <Text style={styles.alarmTime}>{alarmLabel} {t.alarmReminderSuffix}</Text>
                 ) : (
-                  <Text style={styles.noAlarm}>未设置提醒</Text>
+                  <Text style={styles.noAlarm}>{t.alarmNoReminder}</Text>
                 )}
               </View>
               <View style={styles.actions}>
                 {!alarmLabel && (
                   <TouchableOpacity style={styles.setBtn} onPress={() => openPicker(task)}>
-                    <Text style={styles.setBtnText}>设置</Text>
+                    <Text style={styles.setBtnText}>{t.alarmSetBtn}</Text>
                   </TouchableOpacity>
                 )}
                 {alarmLabel && !expired && (
                   <TouchableOpacity style={styles.statusSetBtn} onPress={() => openPicker(task)}>
-                    <Text style={styles.statusSetText}>已设置</Text>
+                    <Text style={styles.statusSetText}>{t.alarmSetDone}</Text>
                   </TouchableOpacity>
                 )}
                 {alarmLabel && expired && (
                   <TouchableOpacity style={styles.statusExpiredBtn} onPress={() => openPicker(task)}>
-                    <Text style={styles.statusExpiredText}>已过期</Text>
+                    <Text style={styles.statusExpiredText}>{t.alarmExpired}</Text>
                   </TouchableOpacity>
                 )}
                 {alarmLabel && (
@@ -312,13 +314,13 @@ export default function AlarmSettingsScreen() {
         <View style={styles.pickerContainer}>
           <View style={styles.pickerHeader}>
             <TouchableOpacity onPress={() => setShowPicker(false)}>
-              <Text style={styles.pickerCancel}>取消</Text>
+              <Text style={styles.pickerCancel}>{t.alarmCancelBtn}</Text>
             </TouchableOpacity>
             <Text style={styles.pickerTitle}>
               {selectedTask ? rawTitle(selectedTask.title) : ''}
             </Text>
             <TouchableOpacity onPress={handleConfirm}>
-              <Text style={styles.pickerDone}>确认</Text>
+              <Text style={styles.pickerDone}>{t.alarmConfirmBtn}</Text>
             </TouchableOpacity>
           </View>
 

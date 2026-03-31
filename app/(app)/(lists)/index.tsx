@@ -16,11 +16,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSharedLists, useCreateList, useDeleteList } from '@/features/lists/hooks/useLists';
 import { Colors, Spacing, Typography, BorderRadius } from '@/shared/constants/theme';
 import { SharedList } from '@/shared/types/models';
+import { useTranslation } from '@/shared/i18n';
 
 export default function ListsScreen() {
   const { lists, loading } = useSharedLists();
   const createList = useCreateList();
   const deleteList = useDeleteList();
+  const t = useTranslation();
   const [showModal, setShowModal] = useState(false);
   const [inputKey, setInputKey] = useState(0);
   const listTitleRef = useRef('');
@@ -36,16 +38,16 @@ export default function ListsScreen() {
       setInputKey(k => k + 1);
       setShowModal(false);
     } catch (err) {
-      Alert.alert('错误', err instanceof Error ? err.message : '创建失败');
+      Alert.alert(t.error, err instanceof Error ? err.message : t.create);
     } finally {
       setCreating(false);
     }
   };
 
   const handleDelete = (list: SharedList) => {
-    Alert.alert('删除清单', `确定删除"${list.title}"？`, [
-      { text: '取消', style: 'cancel' },
-      { text: '删除', style: 'destructive', onPress: () => deleteList(list.id) },
+    Alert.alert(t.listsDeleteTitle, t.listsDeleteConfirm(list.title), [
+      { text: t.cancel, style: 'cancel' },
+      { text: t.delete, style: 'destructive', onPress: () => deleteList(list.id) },
     ]);
   };
 
@@ -53,7 +55,7 @@ export default function ListsScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>购物清单</Text>
+        <Text style={styles.title}>{t.listsTitle}</Text>
         <TouchableOpacity style={styles.addCircle} onPress={() => setShowModal(true)}>
           <Ionicons name="add" size={22} color={Colors.white} />
         </TouchableOpacity>
@@ -66,8 +68,8 @@ export default function ListsScreen() {
           <View style={styles.heroCard}>
             <View style={styles.heroLeft}>
               <View>
-                <Text style={styles.heroTitle}>{lists.length} 个清单</Text>
-                <Text style={styles.heroSubtitle}>{pendingCount} 个待买</Text>
+                <Text style={styles.heroTitle}>{t.listsCount(lists.length)}</Text>
+                <Text style={styles.heroSubtitle}>{t.listsPendingCount(pendingCount)}</Text>
               </View>
             </View>
             <View style={styles.heroCount}>
@@ -90,7 +92,7 @@ export default function ListsScreen() {
                 <Text style={styles.listTitle}>{item.title}</Text>
               </View>
               <View style={[styles.statusTag, item.status === 'completed' && styles.statusTagDone]}>
-                <Text style={styles.statusTagText}>{item.status === 'completed' ? '已完成' : '待买'}</Text>
+                <Text style={styles.statusTagText}>{item.status === 'completed' ? t.listsCompleted : t.listsPending}</Text>
               </View>
               <TouchableOpacity
                 onPress={() => handleDelete(item)}
@@ -105,8 +107,8 @@ export default function ListsScreen() {
           !loading ? (
             <View style={styles.empty}>
               <Text style={styles.emptyEmoji}>🛒</Text>
-              <Text style={styles.emptyTitle}>暂无清单</Text>
-              <Text style={styles.emptySubtitle}>点击 + 创建购物清单</Text>
+              <Text style={styles.emptyTitle}>{t.listsEmpty}</Text>
+              <Text style={styles.emptySubtitle}>{t.listsEmptySubtitle}</Text>
             </View>
           ) : null
         }
@@ -123,11 +125,11 @@ export default function ListsScreen() {
           <Pressable style={StyleSheet.absoluteFillObject} onPress={() => setShowModal(false)} />
           <View style={styles.bottomSheet}>
             <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>新建清单</Text>
+            <Text style={styles.sheetTitle}>{t.listsNew}</Text>
             <TextInput
               key={inputKey}
               style={styles.input}
-              placeholder="清单名称，例如：本周采购"
+              placeholder={t.listsNamePlaceholder}
               placeholderTextColor={Colors.slate}
               onChangeText={t => { listTitleRef.current = t; }}
               returnKeyType="done"
@@ -138,7 +140,7 @@ export default function ListsScreen() {
               onPress={handleCreate}
               disabled={creating}
             >
-              <Text style={styles.submitBtnText}>创建</Text>
+              <Text style={styles.submitBtnText}>{t.listsCreateBtn}</Text>
             </TouchableOpacity>
           </View>
         </View>
